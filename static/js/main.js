@@ -15,6 +15,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Search functionality
     initializeSearch();
+    
+    // Initialize filter functionality
+    initializeFilters();
+    
+    // Initialize expandable details
+    initializeExpandableDetails();
 });
 
 /**
@@ -185,6 +191,134 @@ function initializeSearch() {
 }
 
 /**
+ * Initialize dynamic filtering
+ */
+function initializeFilters() {
+    const filterForm = document.getElementById('filterForm');
+    if (!filterForm) return;
+    
+    const searchInput = document.getElementById('searchInput');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const typeFilter = document.getElementById('typeFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    
+    // Auto-submit form on filter changes with debouncing
+    let debounceTimer;
+    
+    function submitFilters() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            filterForm.submit();
+        }, 300);
+    }
+    
+    if (searchInput) {
+        searchInput.addEventListener('input', submitFilters);
+    }
+    
+    if (categoryFilter) {
+        categoryFilter.addEventListener('change', () => {
+            filterForm.submit();
+        });
+    }
+    
+    if (typeFilter) {
+        typeFilter.addEventListener('change', () => {
+            filterForm.submit();
+        });
+    }
+    
+    if (statusFilter) {
+        statusFilter.addEventListener('change', () => {
+            filterForm.submit();
+        });
+    }
+}
+
+/**
+ * Initialize expandable book details
+ */
+function initializeExpandableDetails() {
+    const toggleButtons = document.querySelectorAll('.toggle-details');
+    
+    toggleButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const bookId = this.getAttribute('data-book-id');
+            const card = this.closest('.book-card');
+            const shortDesc = card.querySelector('.description-short');
+            const fullDesc = card.querySelector('.description-full');
+            const icon = this.querySelector('i');
+            const buttonText = this.querySelector('.btn-text') || this;
+            
+            if (fullDesc.style.display === 'none' || !fullDesc.style.display) {
+                // Expand
+                shortDesc.style.display = 'none';
+                fullDesc.style.display = 'block';
+                icon.className = 'fas fa-chevron-up';
+                if (this.querySelector('.btn-text')) {
+                    this.querySelector('.btn-text').textContent = ' View less details';
+                } else {
+                    this.innerHTML = '<i class="fas fa-chevron-up"></i> View less details';
+                }
+                this.classList.add('expanded');
+            } else {
+                // Collapse
+                shortDesc.style.display = 'block';
+                fullDesc.style.display = 'none';
+                icon.className = 'fas fa-chevron-down';
+                if (this.querySelector('.btn-text')) {
+                    this.querySelector('.btn-text').textContent = ' View more details';
+                } else {
+                    this.innerHTML = '<i class="fas fa-chevron-down"></i> View more details';
+                }
+                this.classList.remove('expanded');
+            }
+        });
+    });
+}
+
+/**
+ * Clear search input and reload page
+ */
+function clearSearch() {
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.value = '';
+        const form = document.getElementById('filterForm');
+        if (form) {
+            form.submit();
+        }
+    }
+}
+
+/**
+ * Show loading state for pagination links
+ */
+function showPaginationLoading(link) {
+    const originalContent = link.innerHTML;
+    link.innerHTML = '<span class="loading-spinner"></span> Loading...';
+    link.style.pointerEvents = 'none';
+    
+    // Restore after 5 seconds (fallback)
+    setTimeout(() => {
+        link.innerHTML = originalContent;
+        link.style.pointerEvents = 'auto';
+    }, 5000);
+}
+
+// Add loading states to pagination links
+document.addEventListener('DOMContentLoaded', function() {
+    const paginationLinks = document.querySelectorAll('.pagination .page-link');
+    paginationLinks.forEach(link => {
+        link.addEventListener('click', function() {
+            if (!this.closest('.page-item').classList.contains('active')) {
+                showPaginationLoading(this);
+            }
+        });
+    });
+});
+
+/**
  * Utility function to format dates
  */
 function formatDate(dateString) {
@@ -297,5 +431,8 @@ window.LibraryApp = {
     submitFormAjax,
     scrollToElement,
     copyToClipboard,
-    formatDate
+    formatDate,
+    clearSearch,
+    initializeFilters,
+    initializeExpandableDetails
 };

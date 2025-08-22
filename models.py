@@ -29,6 +29,8 @@ class Book(db.Model):
     author = db.Column(db.String(100), nullable=False)
     isbn = db.Column(db.String(20), unique=True, nullable=False)
     genre = db.Column(db.String(50), nullable=False)
+    category = db.Column(db.String(100), nullable=False, default='General')
+    book_type = db.Column(db.String(50), nullable=False, default='Physical')
     description = db.Column(db.Text)
     publication_year = db.Column(db.Integer)
     total_copies = db.Column(db.Integer, default=1)

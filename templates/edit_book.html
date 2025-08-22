@@ -56,6 +56,35 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
+                                <label for="category" class="form-label">Category *</label>
+                                <select class="form-select" id="category" name="category" required>
+                                    <option value="">Select category</option>
+                                    {% for category in ['Energy, Climate and Sustainability', 'Health Sciences', 'Engineering and Technology', 'Law', 'Design', 'Architecture and Planning', 'Humanities & Arts', 'Management & Commerce', 'Maths & Sciences', 'Education', 'General'] %}
+                                        <option value="{{ category }}" {% if book.category == category %}selected{% endif %}>
+                                            {{ category }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="book_type" class="form-label">Book Type *</label>
+                                <select class="form-select" id="book_type" name="book_type" required>
+                                    <option value="">Select book type</option>
+                                    {% for book_type in ['Physical', 'E-book', 'Hardcover', 'Paperback', 'Audiobook', 'Journal', 'Magazine', 'Reference'] %}
+                                        <option value="{{ book_type }}" {% if book.book_type == book_type %}selected{% endif %}>
+                                            {{ book_type }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
                                 <label for="publication_year" class="form-label">Publication Year *</label>
                                 <input type="number" class="form-control" id="publication_year" name="publication_year" 
                                        min="1000" max="2025" value="{{ book.publication_year }}" required>

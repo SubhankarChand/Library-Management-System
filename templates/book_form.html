@@ -63,6 +63,44 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
+                                <label for="category" class="form-label">Category *</label>
+                                <select class="form-select" id="category" name="category" required>
+                                    <option value="">Select category</option>
+                                    <option value="Energy, Climate and Sustainability">Energy, Climate and Sustainability</option>
+                                    <option value="Health Sciences">Health Sciences</option>
+                                    <option value="Engineering and Technology">Engineering and Technology</option>
+                                    <option value="Law">Law</option>
+                                    <option value="Design">Design</option>
+                                    <option value="Architecture and Planning">Architecture and Planning</option>
+                                    <option value="Humanities & Arts">Humanities & Arts</option>
+                                    <option value="Management & Commerce">Management & Commerce</option>
+                                    <option value="Maths & Sciences">Maths & Sciences</option>
+                                    <option value="Education">Education</option>
+                                    <option value="General">General</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="book_type" class="form-label">Book Type *</label>
+                                <select class="form-select" id="book_type" name="book_type" required>
+                                    <option value="">Select book type</option>
+                                    <option value="Physical">Physical Book</option>
+                                    <option value="E-book">E-book</option>
+                                    <option value="Hardcover">Hardcover</option>
+                                    <option value="Paperback">Paperback</option>
+                                    <option value="Audiobook">Audiobook</option>
+                                    <option value="Journal">Journal</option>
+                                    <option value="Magazine">Magazine</option>
+                                    <option value="Reference">Reference</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
                                 <label for="publication_year" class="form-label">Publication Year *</label>
                                 <input type="number" class="form-control" id="publication_year" name="publication_year" 
                                        min="1000" max="2025" required>

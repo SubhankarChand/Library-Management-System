@@ -7,9 +7,61 @@ from werkzeug.security import generate_password_hash
 
 @app.route('/')
 def index():
-    books = Book.query.filter(Book.available_copies > 0).all()
+    # Get filter parameters
+    search = request.args.get('search', '')
+    category = request.args.get('category', '')
+    book_type = request.args.get('book_type', '')
+    status = request.args.get('status', '')
+    page = request.args.get('page', 1, type=int)
+    per_page = 9  # Books per page
+    
+    # Build query
+    query = Book.query
+    
+    # Apply search filter
+    if search:
+        query = query.filter(
+            Book.title.contains(search) | 
+            Book.author.contains(search) |
+            Book.description.contains(search)
+        )
+    
+    # Apply category filter
+    if category:
+        query = query.filter(Book.category == category)
+    
+    # Apply book type filter
+    if book_type:
+        query = query.filter(Book.book_type == book_type)
+    
+    # Apply status filter
+    if status == 'available':
+        query = query.filter(Book.available_copies > 0)
+    elif status == 'checked_out':
+        query = query.filter(Book.available_copies == 0)
+    
+    # Get paginated results
+    books = query.paginate(
+        page=page, per_page=per_page, error_out=False
+    )
+    
+    # Get filter options for dropdowns
+    categories = db.session.query(Book.category).distinct().all()
+    categories = [cat[0] for cat in categories]
+    
+    book_types = db.session.query(Book.book_type).distinct().all()
+    book_types = [bt[0] for bt in book_types]
+    
     current_user = get_current_user()
-    return render_template('index.html', books=books, current_user=current_user)
+    return render_template('index.html', 
+                         books=books, 
+                         current_user=current_user,
+                         categories=categories,
+                         book_types=book_types,
+                         search=search,
+                         selected_category=category,
+                         selected_book_type=book_type,
+                         selected_status=status)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -136,6 +188,8 @@ def add_book():
             author=request.form['author'],
             isbn=request.form['isbn'],
             genre=request.form['genre'],
+            category=request.form['category'],
+            book_type=request.form['book_type'],
             description=request.form['description'],
             publication_year=int(request.form['publication_year']),
             total_copies=int(request.form['total_copies']),
@@ -170,6 +224,8 @@ def edit_book(book_id):
         book.author = request.form['author']
         book.isbn = request.form['isbn']
         book.genre = request.form['genre']
+        book.category = request.form['category']
+        book.book_type = request.form['book_type']
         book.description = request.form['description']
         book.publication_year = int(request.form['publication_year'])
         
