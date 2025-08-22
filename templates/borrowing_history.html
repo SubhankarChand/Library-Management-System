@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Borrowing History - Library Management System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2 class="mb-4">
+            <i class="fas fa-history"></i> 
+            {% if current_user.role == 'user' %}
+                Your Borrowing History
+            {% else %}
+                All Borrowing History
+            {% endif %}
+        </h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                {% if borrowed_books %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    {% if current_user.role != 'user' %}
+                                        <th>User</th>
+                                    {% endif %}
+                                    <th>Book</th>
+                                    <th>Author</th>
+                                    <th>Borrowed Date</th>
+                                    <th>Due Date</th>
+                                    <th>Returned Date</th>
+                                    <th>Status</th>
+                                    {% if current_user.role == 'user' %}
+                                        <th>Actions</th>
+                                    {% endif %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for borrow in borrowed_books %}
+                                    <tr>
+                                        {% if current_user.role != 'user' %}
+                                            <td>
+                                                <strong>{{ borrow.borrower.username }}</strong><br>
+                                                <small class="text-muted">{{ borrow.borrower.email }}</small>
+                                            </td>
+                                        {% endif %}
+                                        <td>
+                                            <strong>{{ borrow.book.title }}</strong><br>
+                                            <small class="text-muted">ISBN: {{ borrow.book.isbn }}</small>
+                                        </td>
+                                        <td>{{ borrow.book.author }}</td>
+                                        <td>{{ borrow.borrowed_date.strftime('%Y-%m-%d') }}</td>
+                                        <td>
+                                            {{ borrow.due_date.strftime('%Y-%m-%d') }}
+                                            {% if not borrow.is_returned and borrow.due_date < moment().datetime %}
+                                                <br><span class="badge bg-danger">Overdue</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if borrow.returned_date %}
+                                                {{ borrow.returned_date.strftime('%Y-%m-%d') }}
+                                            {% else %}
+                                                <span class="text-muted">Not returned</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if borrow.is_returned %}
+                                                <span class="badge bg-success">Returned</span>
+                                            {% else %}
+                                                <span class="badge bg-warning">Borrowed</span>
+                                            {% endif %}
+                                        </td>
+                                        {% if current_user.role == 'user' %}
+                                            <td>
+                                                {% if not borrow.is_returned %}
+                                                    <a href="{{ url_for('return_book', borrow_id=borrow.id) }}" 
+                                                       class="btn btn-success btn-sm">
+                                                        <i class="fas fa-undo"></i> Return
+                                                    </a>
+                                                {% else %}
+                                                    <span class="text-muted">-</span>
+                                                {% endif %}
+                                            </td>
+                                        {% endif %}
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No borrowing history found</h5>
+                        {% if current_user.role == 'user' %}
+                            <p class="text-muted">You haven't borrowed any books yet.</p>
+                            <a href="{{ url_for('index') }}" class="btn btn-primary">
+                                <i class="fas fa-book"></i> Browse Books
+                            </a>
+                        {% else %}
+                            <p class="text-muted">No books have been borrowed yet.</p>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body text-center">
+                {% if current_user.role == 'user' %}
+                    <a href="{{ url_for('user_dashboard') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                {% elif current_user.role == 'publisher' %}
+                    <a href="{{ url_for('publisher_dashboard') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

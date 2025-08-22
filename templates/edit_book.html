@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Book - Library Management System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-edit"></i> Edit Book
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="title" class="form-label">Title *</label>
+                                <input type="text" class="form-control" id="title" name="title" 
+                                       value="{{ book.title }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="author" class="form-label">Author *</label>
+                                <input type="text" class="form-control" id="author" name="author" 
+                                       value="{{ book.author }}" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="isbn" class="form-label">ISBN *</label>
+                                <input type="text" class="form-control" id="isbn" name="isbn" 
+                                       value="{{ book.isbn }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="genre" class="form-label">Genre *</label>
+                                <select class="form-select" id="genre" name="genre" required>
+                                    <option value="">Select genre</option>
+                                    {% for genre in ['Fiction', 'Non-Fiction', 'Science Fiction', 'Fantasy', 'Mystery', 'Romance', 'Thriller', 'Biography', 'History', 'Science', 'Technology', 'Education', 'Children', 'Young Adult', 'Other'] %}
+                                        <option value="{{ genre }}" {% if book.genre == genre %}selected{% endif %}>
+                                            {{ genre }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="publication_year" class="form-label">Publication Year *</label>
+                                <input type="number" class="form-control" id="publication_year" name="publication_year" 
+                                       min="1000" max="2025" value="{{ book.publication_year }}" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="total_copies" class="form-label">Total Copies *</label>
+                                <input type="number" class="form-control" id="total_copies" name="total_copies" 
+                                       min="1" value="{{ book.total_copies }}" required>
+                                <div class="form-text">
+                                    Currently borrowed: {{ book.total_copies - book.available_copies }} copies
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="4">{{ book.description or '' }}</textarea>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('publisher_dashboard') }}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Update Book
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

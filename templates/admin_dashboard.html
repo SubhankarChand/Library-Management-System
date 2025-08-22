@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Library Management System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2 class="mb-4">
+            <i class="fas fa-shield-alt"></i> Admin Dashboard
+        </h2>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h3>{{ total_users }}</h3>
+                        <p class="mb-0">Total Users</p>
+                    </div>
+                    <div>
+                        <i class="fas fa-users fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('manage_users') }}" class="text-white">
+                    <i class="fas fa-arrow-right"></i> Manage Users
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h3>{{ total_books }}</h3>
+                        <p class="mb-0">Total Books</p>
+                    </div>
+                    <div>
+                        <i class="fas fa-book fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('index') }}" class="text-white">
+                    <i class="fas fa-arrow-right"></i> View Books
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-dark">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h3>{{ total_borrowed }}</h3>
+                        <p class="mb-0">Books Borrowed</p>
+                    </div>
+                    <div>
+                        <i class="fas fa-book-reader fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="{{ url_for('borrowing_history') }}" class="text-dark">
+                    <i class="fas fa-arrow-right"></i> View History
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h3>{{ (total_books - total_borrowed) }}</h3>
+                        <p class="mb-0">Available Books</p>
+                    </div>
+                    <div>
+                        <i class="fas fa-check-circle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-book"></i> Recent Books
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recent_books %}
+                    {% for book in recent_books %}
+                        <div class="border-bottom pb-2 mb-2">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <strong>{{ book.title }}</strong><br>
+                                    <small class="text-muted">by {{ book.author }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <small class="text-muted">
+                                        {{ book.created_at.strftime('%Y-%m-%d') }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No books added yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-users"></i> Recent Users
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if recent_users %}
+                    {% for user in recent_users %}
+                        <div class="border-bottom pb-2 mb-2">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <strong>{{ user.username }}</strong><br>
+                                    <small class="text-muted">{{ user.email }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-secondary">{{ user.role }}</span><br>
+                                    <small class="text-muted">
+                                        {{ user.created_at.strftime('%Y-%m-%d') }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No users registered yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-tools"></i> Quick Actions
+                </h5>
+            </div>
+            <div class="card-body text-center">
+                <a href="{{ url_for('manage_users') }}" class="btn btn-primary me-2">
+                    <i class="fas fa-users"></i> Manage Users
+                </a>
+                <a href="{{ url_for('borrowing_history') }}" class="btn btn-info me-2">
+                    <i class="fas fa-history"></i> View All Borrowing History
+                </a>
+                <a href="{{ url_for('index') }}" class="btn btn-success">
+                    <i class="fas fa-book"></i> View All Books
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Library Management System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="jumbotron bg-primary text-white rounded p-5 mb-4">
+            <h1 class="display-4">Welcome to the Library</h1>
+            <p class="lead">Discover, borrow, and manage books with our comprehensive library management system.</p>
+            {% if not current_user %}
+                <hr class="my-4">
+                <p>Join our library today to start borrowing books!</p>
+                <a class="btn btn-light btn-lg" href="{{ url_for('register') }}" role="button">
+                    <i class="fas fa-user-plus"></i> Register Now
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <h2 class="mb-4">
+            <i class="fas fa-book-open"></i> Available Books
+            <span class="badge bg-secondary">{{ books|length }}</span>
+        </h2>
+        
+        {% if books %}
+            <div class="row">
+                {% for book in books %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ book.title }}</h5>
+                                <h6 class="card-subtitle mb-2 text-muted">by {{ book.author }}</h6>
+                                <p class="card-text">
+                                    <small class="text-muted">
+                                        <i class="fas fa-tag"></i> {{ book.genre }} | 
+                                        <i class="fas fa-calendar"></i> {{ book.publication_year }}
+                                    </small>
+                                </p>
+                                {% if book.description %}
+                                    <p class="card-text">{{ book.description[:100] }}{% if book.description|length > 100 %}...{% endif %}</p>
+                                {% endif %}
+                                <p class="card-text">
+                                    <small class="text-success">
+                                        <i class="fas fa-check-circle"></i> 
+                                        {{ book.available_copies }} of {{ book.total_copies }} available
+                                    </small>
+                                </p>
+                            </div>
+                            <div class="card-footer">
+                                {% if current_user and current_user.role == 'user' %}
+                                    {% if book.is_available %}
+                                        <a href="{{ url_for('borrow_book', book_id=book.id) }}" 
+                                           class="btn btn-primary btn-sm">
+                                            <i class="fas fa-book"></i> Borrow
+                                        </a>
+                                    {% else %}
+                                        <button class="btn btn-secondary btn-sm" disabled>
+                                            <i class="fas fa-times"></i> Not Available
+                                        </button>
+                                    {% endif %}
+                                {% endif %}
+                                <small class="text-muted">ISBN: {{ book.isbn }}</small>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                No books are currently available in the library.
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if not current_user %}
+<div class="row mt-5">
+    <div class="col-md-12">
+        <div class="card border-primary">
+            <div class="card-body text-center">
+                <h5 class="card-title">Ready to get started?</h5>
+                <p class="card-text">Create an account to start borrowing books from our library.</p>
+                <a href="{{ url_for('register') }}" class="btn btn-primary">
+                    <i class="fas fa-user-plus"></i> Sign Up Today
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

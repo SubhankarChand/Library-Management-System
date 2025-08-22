@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Users - Library Management System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2 class="mb-4">
+            <i class="fas fa-users"></i> Manage Users
+        </h2>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>{{ users|selectattr('role', 'equalto', 'user')|list|length }}</h4>
+                        <p class="mb-0">Regular Users</p>
+                    </div>
+                    <div>
+                        <i class="fas fa-user fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>{{ users|selectattr('role', 'equalto', 'publisher')|list|length }}</h4>
+                        <p class="mb-0">Publishers</p>
+                    </div>
+                    <div>
+                        <i class="fas fa-building fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-warning text-dark">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>{{ users|selectattr('role', 'equalto', 'admin')|list|length }}</h4>
+                        <p class="mb-0">Administrators</p>
+                    </div>
+                    <div>
+                        <i class="fas fa-shield-alt fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-list"></i> All Users
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if users %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Registered</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                    <tr>
+                                        <td>
+                                            <strong>{{ user.username }}</strong>
+                                            {% if user.role == 'admin' %}
+                                                <i class="fas fa-crown text-warning ms-1" title="Administrator"></i>
+                                            {% elif user.role == 'publisher' %}
+                                                <i class="fas fa-building text-success ms-1" title="Publisher"></i>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ user.email }}</td>
+                                        <td>
+                                            {% if user.role == 'admin' %}
+                                                <span class="badge bg-warning text-dark">Admin</span>
+                                            {% elif user.role == 'publisher' %}
+                                                <span class="badge bg-success">Publisher</span>
+                                            {% else %}
+                                                <span class="badge bg-primary">User</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                                        <td>
+                                            {% if user.role != 'admin' %}
+                                                <a href="{{ url_for('delete_user', user_id=user.id) }}" 
+                                                   class="btn btn-outline-danger btn-sm"
+                                                   onclick="return confirm('Are you sure you want to delete user {{ user.username }}? This action cannot be undone.')">
+                                                    <i class="fas fa-trash"></i> Delete
+                                                </a>
+                                            {% else %}
+                                                <span class="text-muted">Protected</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No users found</h5>
+                        <p class="text-muted">Users will appear here once they register.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">User Management</h5>
+                <p class="card-text">Users can register themselves with the appropriate role. Admin accounts cannot be deleted for security.</p>
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
