@@ -1,83 +1,109 @@
+from flask import render_template, request, redirect, url_for, flash, session, jsonify
+from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
-from flask import render_template, request, redirect, url_for, flash, session
 from app import app, db
-from models import User, Book, BorrowedBook
+from models import User, Book, Category, Borrowing, Review
 from auth import login_required, admin_required, publisher_required, get_current_user
-from werkzeug.security import generate_password_hash
 
-@app.route('/')
-def index():
-    # Get filter parameters
-    search = request.args.get('search', '')
-    category = request.args.get('category', '')
-    book_type = request.args.get('book_type', '')
-    status = request.args.get('status', '')
-    page = request.args.get('page', 1, type=int)
-    per_page = 9  # Books per page
+# ----- Helper Functions -----
+def get_user_stats(user_id):
+    """Get statistics for user dashboard"""
+    borrowed_count = Borrowing.query.filter_by(user_id=user_id, is_returned=False).count()
+    overdue_count = Borrowing.query.filter(
+        Borrowing.user_id == user_id,
+        Borrowing.is_returned == False,
+        Borrowing.due_date < datetime.utcnow()
+    ).count()
+    total_books = Book.query.filter(Book.available_copies > 0).count()
     
-    # Build query
-    query = Book.query
+    return {
+        'borrowed_count': borrowed_count,
+        'overdue_count': overdue_count,
+        'total_books': total_books,
+        'read_books': Borrowing.query.filter_by(user_id=user_id, is_returned=True).count()
+    }
+
+def get_publisher_stats(publisher_id):
+    """Get statistics for publisher dashboard"""
+    published_books = Book.query.filter_by(publisher_id=publisher_id).count()
+    borrowed_count = Borrowing.query.join(Book).filter(Book.publisher_id == publisher_id).count()
+    available_copies = db.session.query(db.func.sum(Book.available_copies)).filter(
+        Book.publisher_id == publisher_id
+    ).scalar() or 0
     
-    # Apply search filter
-    if search:
-        query = query.filter(
-            Book.title.contains(search) | 
-            Book.author.contains(search) |
-            Book.description.contains(search)
+    # Calculate average rating
+    avg_rating = db.session.query(db.func.avg(Review.rating)).join(Book).filter(
+        Book.publisher_id == publisher_id
+    ).scalar() or 0
+    
+    return {
+        'published_books': published_books,
+        'borrowed_count': borrowed_count,
+        'available_copies': available_copies,
+        'average_rating': float(avg_rating)
+    }
+
+# ----- Authentication Routes -----
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
+        confirm_password = request.form['confirm_password']
+        role = request.form['role']
+        
+        # Validate passwords match
+        if password != confirm_password:
+            flash('Passwords do not match', 'danger')
+            return redirect(url_for('register'))
+        
+        # Check if user exists
+        if User.query.filter_by(email=email).first():
+            flash('Email already registered', 'danger')
+            return redirect(url_for('register'))
+        
+        if User.query.filter_by(username=username).first():
+            flash('Username already taken', 'danger')
+            return redirect(url_for('register'))
+        
+        # Create new user
+        hashed_password = generate_password_hash(password)
+        new_user = User(
+            username=username,
+            email=email,
+            password_hash=hashed_password,
+            role=role
         )
+        
+        db.session.add(new_user)
+        db.session.commit()
+        
+        flash('Registration successful. Please login.', 'success')
+        return redirect(url_for('login'))
     
-    # Apply category filter
-    if category:
-        query = query.filter(Book.category == category)
-    
-    # Apply book type filter
-    if book_type:
-        query = query.filter(Book.book_type == book_type)
-    
-    # Apply status filter
-    if status == 'available':
-        query = query.filter(Book.available_copies > 0)
-    elif status == 'checked_out':
-        query = query.filter(Book.available_copies == 0)
-    
-    # Get paginated results
-    books = query.paginate(
-        page=page, per_page=per_page, error_out=False
-    )
-    
-    # Get filter options for dropdowns
-    categories = db.session.query(Book.category).distinct().all()
-    categories = [cat[0] for cat in categories]
-    
-    book_types = db.session.query(Book.book_type).distinct().all()
-    book_types = [bt[0] for bt in book_types]
-    
-    current_user = get_current_user()
-    return render_template('index.html', 
-                         books=books, 
-                         current_user=current_user,
-                         categories=categories,
-                         book_types=book_types,
-                         search=search,
-                         selected_category=category,
-                         selected_book_type=book_type,
-                         selected_status=status)
+    return render_template('register.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form['username']
+        email = request.form['email']
         password = request.form['password']
         
-        user = User.query.filter_by(username=username).first()
+        user = User.query.filter_by(email=email).first()
         
-        if user and user.check_password(password):
+        if user and check_password_hash(user.password_hash, password):
+            if not user.is_active:
+                flash('Your account has been deactivated. Please contact admin.', 'danger')
+                return redirect(url_for('login'))
+            
             session['user_id'] = user.id
             session['username'] = user.username
             session['role'] = user.role
+            
             flash(f'Welcome back, {user.username}!', 'success')
             
-            # Redirect to appropriate dashboard
+            # Redirect based on role
             if user.role == 'admin':
                 return redirect(url_for('admin_dashboard'))
             elif user.role == 'publisher':
@@ -85,295 +111,443 @@ def login():
             else:
                 return redirect(url_for('user_dashboard'))
         else:
-            flash('Invalid username or password.', 'danger')
+            flash('Invalid email or password', 'danger')
     
     return render_template('login.html')
-
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if request.method == 'POST':
-        username = request.form['username']
-        email = request.form['email']
-        password = request.form['password']
-        role = request.form['role']
-        
-        # Check if user already exists
-        if User.query.filter_by(username=username).first():
-            flash('Username already exists.', 'danger')
-            return render_template('register.html')
-        
-        if User.query.filter_by(email=email).first():
-            flash('Email already registered.', 'danger')
-            return render_template('register.html')
-        
-        # Create new user
-        user = User(
-            username=username,
-            email=email,
-            password_hash=generate_password_hash(password),
-            role=role
-        )
-        
-        db.session.add(user)
-        db.session.commit()
-        
-        flash('Registration successful! Please log in.', 'success')
-        return redirect(url_for('login'))
-    
-    return render_template('register.html')
 
 @app.route('/logout')
 def logout():
     session.clear()
-    flash('You have been logged out.', 'info')
-    return redirect(url_for('index'))
+    flash('You have been logged out', 'info')
+    return redirect(url_for('home'))
 
-@app.route('/user_dashboard')
+# ----- Main Routes -----
+@app.route('/')
+def home():
+    return render_template('index.html', current_user=get_current_user())
+
+@app.route('/user/dashboard')
 @login_required
 def user_dashboard():
-    current_user = get_current_user()
-    if current_user.role != 'user':
-        return redirect(url_for('index'))
+    user = get_current_user()
+    if user.role != 'user':
+        flash('Access denied. User dashboard is for regular users only.', 'danger')
+        return redirect(url_for('home'))
     
-    # Get user's current borrowed books
-    borrowed_books = BorrowedBook.query.filter_by(
-        user_id=current_user.id, 
-        is_returned=False
-    ).all()
+    stats = get_user_stats(user.id)
+    recent_borrowings = Borrowing.query.filter_by(user_id=user.id).order_by(
+        Borrowing.borrowed_date.desc()
+    ).limit(5).all()
     
-    # Get available books
-    available_books = Book.query.filter(Book.available_copies > 0).all()
+    # Get recommended books (simple implementation)
+    recommended_books = Book.query.filter(
+        Book.available_copies > 0
+    ).order_by(db.func.random()).limit(3).all()
     
-    return render_template('user_dashboard.html', 
-                         borrowed_books=borrowed_books, 
-                         available_books=available_books,
-                         current_user=current_user)
+    return render_template('user_dashboard.html',
+                         current_user=user,
+                         borrowed_count=stats['borrowed_count'],
+                         overdue_count=stats['overdue_count'],
+                         total_books=stats['total_books'],
+                         read_books=stats['read_books'],
+                         recent_borrowings=recent_borrowings,
+                         recommended_books=recommended_books)
 
-@app.route('/publisher_dashboard')
-@publisher_required
-def publisher_dashboard():
-    current_user = get_current_user()
-    published_books = Book.query.filter_by(publisher_id=current_user.id).all()
-    return render_template('publisher_dashboard.html', 
-                         published_books=published_books,
-                         current_user=current_user)
-
-@app.route('/admin_dashboard')
+@app.route('/admin/dashboard')
+@login_required
 @admin_required
 def admin_dashboard():
-    current_user = get_current_user()
-    total_users = User.query.count()
+    # Get stats for admin dashboard
     total_books = Book.query.count()
-    total_borrowed = BorrowedBook.query.filter_by(is_returned=False).count()
+    total_users = User.query.count()
+    total_publishers = User.query.filter_by(role='publisher').count()
+    borrowed_books = Borrowing.query.filter_by(is_returned=False).count()
     
+    # Get recent books and users
     recent_books = Book.query.order_by(Book.created_at.desc()).limit(5).all()
     recent_users = User.query.order_by(User.created_at.desc()).limit(5).all()
     
     return render_template('admin_dashboard.html',
-                         total_users=total_users,
+                         current_user=get_current_user(),
                          total_books=total_books,
-                         total_borrowed=total_borrowed,
+                         total_users=total_users,
+                         total_publishers=total_publishers,
+                         total_borrowed=borrowed_books,
                          recent_books=recent_books,
-                         recent_users=recent_users,
-                         current_user=current_user)
+                         recent_users=recent_users)
 
-@app.route('/add_book', methods=['GET', 'POST'])
+@app.route('/publisher/dashboard')
+@login_required
+@publisher_required
+def publisher_dashboard():
+    user = get_current_user()
+    stats = get_publisher_stats(user.id)
+    books = Book.query.filter_by(publisher_id=user.id).all()
+    
+    return render_template('publisher_dashboard.html',
+                         current_user=user,
+                         published_books=stats['published_books'],
+                         borrowed_count=stats['borrowed_count'],
+                         available_copies=stats['available_copies'],
+                         average_rating=stats['average_rating'],
+                         books=books)
+
+# ----- Book Management Routes -----
+@app.route('/books')
+def index():
+    # Implement book search and filtering
+    search = request.args.get('search', '')
+    category = request.args.get('category', '')
+    book_type = request.args.get('book_type', '')
+    status = request.args.get('status', '')
+    page = request.args.get('page', 1, type=int)
+    
+    query = Book.query
+    
+    if search:
+        query = query.filter(
+            (Book.title.ilike(f'%{search}%')) |
+            (Book.author.ilike(f'%{search}%')) |
+            (Book.isbn.ilike(f'%{search}%'))
+        )
+    
+    if category:
+        query = query.filter(Book.category == category)
+    
+    if book_type:
+        query = query.filter(Book.book_type == book_type)
+    
+    if status == 'available':
+        query = query.filter(Book.available_copies > 0)
+    elif status == 'checked_out':
+        query = query.filter(Book.available_copies == 0)
+    
+    books = query.order_by(Book.title).paginate(page=page, per_page=12)
+    
+    # Get unique categories and book types for filters
+    categories = [cat[0] for cat in db.session.query(Book.category).distinct().all() if cat[0]]
+    book_types = [bt[0] for bt in db.session.query(Book.book_type).distinct().all() if bt[0]]
+    
+    return render_template('index.html',
+                         current_user=get_current_user(),
+                         books=books,
+                         search=search,
+                         selected_category=category,
+                         selected_book_type=book_type,
+                         selected_status=status,
+                         categories=categories,
+                         book_types=book_types)
+
+@app.route('/book/add', methods=['GET', 'POST'])
+@login_required
 @publisher_required
 def add_book():
-    current_user = get_current_user()
-    
     if request.method == 'POST':
-        book = Book(
-            title=request.form['title'],
-            author=request.form['author'],
-            isbn=request.form['isbn'],
-            genre=request.form['genre'],
-            category=request.form['category'],
-            book_type=request.form['book_type'],
-            description=request.form['description'],
-            publication_year=int(request.form['publication_year']),
-            total_copies=int(request.form['total_copies']),
-            available_copies=int(request.form['total_copies']),
-            publisher_id=current_user.id
+        # Extract form data
+        title = request.form['title']
+        author = request.form['author']
+        isbn = request.form['isbn']
+        genre = request.form['genre']
+        category = request.form['category']
+        book_type = request.form['book_type']
+        publication_year = request.form['publication_year']
+        total_copies = request.form['total_copies']
+        description = request.form.get('description', '')
+        
+        # Create new book
+        new_book = Book(
+            title=title,
+            author=author,
+            isbn=isbn,
+            genre=genre,
+            category=category,
+            book_type=book_type,
+            publication_year=publication_year,
+            total_copies=total_copies,
+            available_copies=total_copies,
+            description=description,
+            publisher_id=session['user_id']
         )
         
-        try:
-            db.session.add(book)
-            db.session.commit()
-            flash('Book added successfully!', 'success')
-            return redirect(url_for('publisher_dashboard'))
-        except Exception as e:
-            flash('Error adding book. ISBN might already exist.', 'danger')
-            db.session.rollback()
+        db.session.add(new_book)
+        db.session.commit()
+        
+        flash('Book added successfully!', 'success')
+        return redirect(url_for('publisher_dashboard'))
     
-    return render_template('book_form.html', current_user=current_user)
+    return render_template('book_form.html', current_user=get_current_user())
 
-@app.route('/edit_book/<int:book_id>', methods=['GET', 'POST'])
+@app.route('/book/edit/<int:book_id>', methods=['GET', 'POST'])
+@login_required
 @publisher_required
 def edit_book(book_id):
-    current_user = get_current_user()
     book = Book.query.get_or_404(book_id)
     
-    # Check if the current user is the publisher of this book
-    if book.publisher_id != current_user.id and current_user.role != 'admin':
-        flash('You can only edit books you published.', 'danger')
+    # Check if current user owns this book
+    if book.publisher_id != session['user_id']:
+        flash('You can only edit your own books.', 'danger')
         return redirect(url_for('publisher_dashboard'))
     
     if request.method == 'POST':
+        # Update book details
         book.title = request.form['title']
         book.author = request.form['author']
         book.isbn = request.form['isbn']
         book.genre = request.form['genre']
         book.category = request.form['category']
         book.book_type = request.form['book_type']
-        book.description = request.form['description']
-        book.publication_year = int(request.form['publication_year'])
+        book.publication_year = request.form['publication_year']
         
-        # Update copies carefully
+        # Handle copies update carefully
         new_total = int(request.form['total_copies'])
-        borrowed_count = book.total_copies - book.available_copies
-        book.total_copies = new_total
-        book.available_copies = max(0, new_total - borrowed_count)
+        if new_total >= (book.total_copies - book.available_copies):
+            book.total_copies = new_total
+            book.available_copies = new_total - (book.total_copies - book.available_copies)
+        else:
+            flash('Cannot reduce total copies below currently borrowed copies.', 'danger')
+            return redirect(url_for('edit_book', book_id=book_id))
         
-        try:
-            db.session.commit()
-            flash('Book updated successfully!', 'success')
-            return redirect(url_for('publisher_dashboard'))
-        except Exception as e:
-            flash('Error updating book.', 'danger')
-            db.session.rollback()
-    
-    return render_template('edit_book.html', book=book, current_user=current_user)
-
-@app.route('/delete_book/<int:book_id>')
-@publisher_required
-def delete_book(book_id):
-    current_user = get_current_user()
-    book = Book.query.get_or_404(book_id)
-    
-    # Check if the current user is the publisher of this book
-    if book.publisher_id != current_user.id and current_user.role != 'admin':
-        flash('You can only delete books you published.', 'danger')
+        book.description = request.form.get('description', '')
+        
+        db.session.commit()
+        flash('Book updated successfully!', 'success')
         return redirect(url_for('publisher_dashboard'))
     
-    # Check if book is currently borrowed
-    active_borrows = BorrowedBook.query.filter_by(book_id=book_id, is_returned=False).count()
-    if active_borrows > 0:
-        flash('Cannot delete book that is currently borrowed.', 'danger')
-        return redirect(url_for('publisher_dashboard'))
-    
-    db.session.delete(book)
-    db.session.commit()
-    flash('Book deleted successfully!', 'success')
-    return redirect(url_for('publisher_dashboard'))
+    return render_template('edit_book.html', current_user=get_current_user(), book=book)
 
-@app.route('/borrow_book/<int:book_id>')
+# ----- Borrowing Routes -----
+@app.route('/borrow/<int:book_id>')
 @login_required
 def borrow_book(book_id):
-    current_user = get_current_user()
-    
-    if current_user.role != 'user':
-        flash('Only users can borrow books.', 'danger')
-        return redirect(url_for('index'))
-    
+    user = get_current_user()
     book = Book.query.get_or_404(book_id)
+    
+    if user.role != 'user':
+        flash('Only regular users can borrow books.', 'danger')
+        return redirect(url_for('index'))
     
     if not book.is_available:
         flash('This book is not available for borrowing.', 'danger')
-        return redirect(url_for('user_dashboard'))
+        return redirect(url_for('index'))
     
     # Check if user already has this book borrowed
-    existing_borrow = BorrowedBook.query.filter_by(
-        user_id=current_user.id,
+    existing_borrow = Borrowing.query.filter_by(
+        user_id=user.id,
         book_id=book_id,
         is_returned=False
     ).first()
     
     if existing_borrow:
         flash('You have already borrowed this book.', 'warning')
-        return redirect(url_for('user_dashboard'))
+        return redirect(url_for('index'))
     
-    # Create borrow record
-    borrow = BorrowedBook(
-        user_id=current_user.id,
+    # Create borrowing record
+    borrowing = Borrowing(
+        user_id=user.id,
         book_id=book_id,
-        due_date=datetime.utcnow() + timedelta(days=14)  # 2 weeks loan period
+        borrowed_date=datetime.utcnow(),
+        due_date=datetime.utcnow() + timedelta(days=14)  # 2 weeks borrowing period
     )
     
     # Update book availability
     book.available_copies -= 1
     
-    db.session.add(borrow)
+    db.session.add(borrowing)
     db.session.commit()
     
-    flash(f'You have successfully borrowed "{book.title}".', 'success')
+    flash(f'Successfully borrowed "{book.title}"! Due date: {borrowing.due_date.strftime("%Y-%m-%d")}', 'success')
     return redirect(url_for('user_dashboard'))
 
-@app.route('/return_book/<int:borrow_id>')
+@app.route('/return/<int:borrow_id>')
 @login_required
 def return_book(borrow_id):
-    current_user = get_current_user()
-    borrow = BorrowedBook.query.get_or_404(borrow_id)
+    borrowing = Borrowing.query.get_or_404(borrow_id)
+    user = get_current_user()
     
-    if borrow.user_id != current_user.id and current_user.role != 'admin':
-        flash('You can only return books you borrowed.', 'danger')
-        return redirect(url_for('user_dashboard'))
+    # Check if current user owns this borrowing record
+    if borrowing.user_id != user.id and user.role != 'admin':
+        flash('You can only return your own borrowed books.', 'danger')
+        return redirect(url_for('borrowing_history'))
     
-    if borrow.is_returned:
+    if borrowing.is_returned:
         flash('This book has already been returned.', 'warning')
-        return redirect(url_for('user_dashboard'))
+        return redirect(url_for('borrowing_history'))
     
-    # Mark as returned
-    borrow.is_returned = True
-    borrow.returned_date = datetime.utcnow()
+    # Update borrowing record
+    borrowing.is_returned = True
+    borrowing.returned_date = datetime.utcnow()
     
     # Update book availability
-    book = Book.query.get(borrow.book_id)
+    book = Book.query.get(borrowing.book_id)
     book.available_copies += 1
     
     db.session.commit()
     
-    flash(f'You have successfully returned "{book.title}".', 'success')
-    return redirect(url_for('user_dashboard'))
+    flash(f'Successfully returned "{book.title}"!', 'success')
+    return redirect(url_for('borrowing_history'))
 
-@app.route('/borrowing_history')
+@app.route('/borrowing-history')
 @login_required
 def borrowing_history():
-    current_user = get_current_user()
+    user = get_current_user()
     
-    if current_user.role == 'user':
-        borrowed_books = BorrowedBook.query.filter_by(user_id=current_user.id).order_by(BorrowedBook.borrowed_date.desc()).all()
+    if user.role == 'user':
+        # Show only user's own history
+        borrowed_books = Borrowing.query.filter_by(user_id=user.id).order_by(
+            Borrowing.borrowed_date.desc()
+        ).all()
     else:
-        borrowed_books = BorrowedBook.query.order_by(BorrowedBook.borrowed_date.desc()).all()
+        # Show all history for admins/publishers
+        borrowed_books = Borrowing.query.order_by(
+            Borrowing.borrowed_date.desc()
+        ).all()
     
-    return render_template('borrowing_history.html', 
-                         borrowed_books=borrowed_books,
-                         current_user=current_user)
+    return render_template('borrowing_history.html',
+                         current_user=user,
+                         borrowed_books=borrowed_books)
 
-@app.route('/manage_users')
+# ----- User Management Routes (Admin only) -----
+@app.route('/admin/users')
+@login_required
 @admin_required
 def manage_users():
-    current_user = get_current_user()
-    users = User.query.all()
-    return render_template('manage_users.html', users=users, current_user=current_user)
+    users = User.query.order_by(User.created_at.desc()).all()
+    return render_template('manage_users.html', current_user=get_current_user(), users=users)
 
-@app.route('/delete_user/<int:user_id>')
+@app.route('/admin/user/delete/<int:user_id>')
+@login_required
 @admin_required
 def delete_user(user_id):
     user = User.query.get_or_404(user_id)
     
-    # Don't allow deletion of admin users
+    # Prevent deleting admin accounts
     if user.role == 'admin':
-        flash('Cannot delete admin users.', 'danger')
+        flash('Cannot delete administrator accounts.', 'danger')
         return redirect(url_for('manage_users'))
     
-    # Check for active borrows
-    active_borrows = BorrowedBook.query.filter_by(user_id=user_id, is_returned=False).count()
-    if active_borrows > 0:
-        flash('Cannot delete user with active book borrows.', 'danger')
-        return redirect(url_for('manage_users'))
+    # Check if user has any books or borrowings
+    has_books = Book.query.filter_by(publisher_id=user_id).count() > 0
+    has_borrowings = Borrowing.query.filter_by(user_id=user_id).count() > 0
     
-    db.session.delete(user)
+    if has_books or has_borrowings:
+        # Deactivate instead of delete
+        user.is_active = False
+        flash(f'User {user.username} has been deactivated (cannot delete users with activity).', 'warning')
+    else:
+        db.session.delete(user)
+        flash(f'User {user.username} has been deleted.', 'success')
+    
     db.session.commit()
-    flash(f'User {user.username} deleted successfully.', 'success')
     return redirect(url_for('manage_users'))
+
+@app.route('/admin/user/toggle/<int:user_id>')
+@login_required
+@admin_required
+def toggle_user_status(user_id):
+    user = User.query.get_or_404(user_id)
+    
+    # Prevent deactivating admin accounts
+    if user.role == 'admin':
+        flash('Cannot deactivate administrator accounts.', 'danger')
+        return redirect(url_for('manage_users'))
+    
+    user.is_active = not user.is_active
+    status = "activated" if user.is_active else "deactivated"
+    
+    db.session.commit()
+    flash(f'User {user.username} has been {status}.', 'success')
+    return redirect(url_for('manage_users'))
+
+# ----- E-book Download Routes -----
+@app.route('/download/<int:book_id>')
+@login_required
+def download_book(book_id):
+    user = get_current_user()
+    book = Book.query.get_or_404(book_id)
+    
+    if user.role != 'user':
+        flash('Only regular users can download books.', 'danger')
+        return redirect(url_for('index'))
+    
+    if book.book_type != 'E-book':
+        flash('This book is not available for download.', 'danger')
+        return redirect(url_for('index'))
+    
+    if not book.pdf_file_path:
+        flash('Download not available for this book.', 'danger')
+        return redirect(url_for('index'))
+    
+    # Record download activity (you might want to create a Download model)
+    flash(f'Download started for "{book.title}"', 'success')
+    
+    # In a real application, you would serve the file here
+    # For now, we'll just redirect back
+    return redirect(url_for('user_dashboard'))
+
+# ----- Review Routes -----
+@app.route('/review/<int:book_id>', methods=['POST'])
+@login_required
+def add_review(book_id):
+    user = get_current_user()
+    book = Book.query.get_or_404(book_id)
+    
+    if user.role != 'user':
+        flash('Only regular users can submit reviews.', 'danger')
+        return redirect(url_for('index'))
+    
+    rating = request.form.get('rating')
+    content = request.form.get('content')
+    
+    if not rating or not content:
+        flash('Please provide both rating and review content.', 'danger')
+        return redirect(url_for('index'))
+    
+    # Check if user has already reviewed this book
+    existing_review = Review.query.filter_by(user_id=user.id, book_id=book_id).first()
+    if existing_review:
+        flash('You have already reviewed this book.', 'warning')
+        return redirect(url_for('index'))
+    
+    # Create new review
+    review = Review(
+        user_id=user.id,
+        book_id=book_id,
+        rating=int(rating),
+        content=content
+    )
+    
+    db.session.add(review)
+    db.session.commit()
+    
+    flash('Thank you for your review!', 'success')
+    return redirect(url_for('index'))
+
+# ----- Error Handlers -----
+@app.errorhandler(404)
+def not_found_error(error):
+    return render_template('404.html', current_user=get_current_user()), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    db.session.rollback()
+    return render_template('500.html', current_user=get_current_user()), 500
+
+# ----- API Routes (optional) -----
+@app.route('/api/books')
+def api_books():
+    books = Book.query.all()
+    return jsonify([{
+        'id': book.id,
+        'title': book.title,
+        'author': book.author,
+        'isbn': book.isbn,
+        'genre': book.genre,
+        'available_copies': book.available_copies
+    } for book in books])
+
+@app.route('/api/user/stats')
+@login_required
+def api_user_stats():
+    user = get_current_user()
+    stats = get_user_stats(user.id)
+    return jsonify(stats)

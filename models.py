@@ -1,61 +1,121 @@
 from datetime import datetime
-from app import db
-from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy import UniqueConstraint, Index, CheckConstraint, ForeignKey
+from sqlalchemy.dialects.mysql import VARCHAR, INTEGER, TINYINT
+from sqlalchemy.orm import validates, relationship
+from extensions import db
 
+# ---------------- USERS ----------------
 class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(256), nullable=False)
-    role = db.Column(db.String(20), nullable=False, default='user')  # user, publisher, admin
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    # Relationships
-    published_books = db.relationship('Book', backref='publisher_user', lazy=True, foreign_keys='Book.publisher_id')
-    borrowed_books = db.relationship('BorrowedBook', backref='borrower', lazy=True)
-    
-    def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
-    
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
-    
-    def __repr__(self):
-        return f'<User {self.username}>'
+    __tablename__ = "users"
 
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(VARCHAR(100), unique=True, nullable=False)
+    email = db.Column(VARCHAR(255), unique=True, nullable=False)
+    password_hash = db.Column(VARCHAR(255), nullable=False)
+    role = db.Column(VARCHAR(20), nullable=False, default="user")
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Relationships
+    published_books = db.relationship("Book", backref="publisher", lazy=True, foreign_keys="Book.publisher_id")
+    borrowings = db.relationship("Borrowing", backref="user", lazy=True)
+    reviews = db.relationship("Review", backref="user", lazy=True)
+
+    @validates("role")
+    def validate_role(self, key, value):
+        if value not in ("admin", "publisher", "user"):
+            raise ValueError("role must be one of: admin, publisher, user")
+        return value
+
+    def __repr__(self):
+        return f"<User {self.username} ({self.role})>"
+
+# ---------------- CATEGORIES ----------------
+class Category(db.Model):
+    __tablename__ = "categories"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(VARCHAR(100), unique=True, nullable=False)
+
+    # Remove the relationship to books since we're using a simple string category
+    # books = db.relationship("Book", backref="book_category", lazy=True)
+
+    def __repr__(self):
+        return f"<Category {self.name}>"
+
+# ---------------- BOOKS ----------------
 class Book(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), nullable=False)
-    author = db.Column(db.String(100), nullable=False)
-    isbn = db.Column(db.String(20), unique=True, nullable=False)
-    genre = db.Column(db.String(50), nullable=False)
-    category = db.Column(db.String(100), nullable=False, default='General')
-    book_type = db.Column(db.String(50), nullable=False, default='Physical')
-    description = db.Column(db.Text)
-    publication_year = db.Column(db.Integer)
-    total_copies = db.Column(db.Integer, default=1)
-    available_copies = db.Column(db.Integer, default=1)
-    publisher_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    # Relationships
-    borrowed_records = db.relationship('BorrowedBook', backref='book', lazy=True)
-    
-    @property
-    def is_available(self):
-        return self.available_copies > 0
-    
-    def __repr__(self):
-        return f'<Book {self.title}>'
+    __tablename__ = "books"
 
-class BorrowedBook(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    book_id = db.Column(db.Integer, db.ForeignKey('book.id'), nullable=False)
-    borrowed_date = db.Column(db.DateTime, default=datetime.utcnow)
-    due_date = db.Column(db.DateTime, nullable=False)
-    returned_date = db.Column(db.DateTime)
-    is_returned = db.Column(db.Boolean, default=False)
-    
+    title = db.Column(VARCHAR(200), nullable=False)
+    author = db.Column(VARCHAR(150), nullable=False)
+    description = db.Column(db.Text)
+    category = db.Column(VARCHAR(100))  # Simple string field, not foreign key
+    cover_image = db.Column(VARCHAR(255))
+    pdf_file = db.Column(VARCHAR(255))
+    publisher_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    available_copies = db.Column(db.Integer, nullable=False, default=1)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Relationships
+    borrowings = db.relationship("Borrowing", backref="book", lazy=True)
+    reviews = db.relationship("Review", backref="book", lazy=True)
+
+    __table_args__ = (
+        Index("ix_books_title", "title"),
+        Index("ix_books_author", "author"),
+        CheckConstraint("available_copies >= 0", name="ck_books_available_nonneg"),
+    )
+
+    @property
+    def is_available(self) -> bool:
+        return self.available_copies > 0
+
     def __repr__(self):
-        return f'<BorrowedBook User:{self.user_id} Book:{self.book_id}>'
+        return f"<Book {self.title} by {self.author}>"
+
+# ---------------- BORROWINGS ----------------
+class Borrowing(db.Model):
+    __tablename__ = "borrowings"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    book_id = db.Column(db.Integer, db.ForeignKey("books.id"), nullable=False)
+    borrow_date = db.Column(db.DateTime, default=datetime.utcnow)
+    return_date = db.Column(db.DateTime)
+    status = db.Column(VARCHAR(20), default="borrowed")
+
+    __table_args__ = (
+        UniqueConstraint("user_id", "book_id", "status", name="uq_active_borrow_per_user_book"),
+    )
+
+    @property
+    def is_returned(self):
+        return self.status == "returned"
+
+    @property
+    def borrowed_date(self):
+        return self.borrow_date
+
+    def __repr__(self):
+        return f"<Borrowing u={self.user_id} b={self.book_id} status={self.status}>"
+
+# ---------------- REVIEWS ----------------
+class Review(db.Model):
+    __tablename__ = "reviews"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    book_id = db.Column(db.Integer, db.ForeignKey("books.id"), nullable=False)
+    rating = db.Column(TINYINT(unsigned=True), nullable=False)
+    comment = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        CheckConstraint("rating BETWEEN 1 AND 5", name="ck_reviews_rating_1_5"),
+        Index("ix_reviews_book_id", "book_id"),
+        Index("ix_reviews_user_id", "user_id"),
+    )
+
+    def __repr__(self):
+        return f"<Review book={self.book_id} user={self.user_id} ★{self.rating}>"

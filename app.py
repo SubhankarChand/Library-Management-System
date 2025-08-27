@@ -1,51 +1,42 @@
 import os
-import logging
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import DeclarativeBase
 from werkzeug.middleware.proxy_fix import ProxyFix
+from extensions import db, migrate
 
-# Configure logging
-logging.basicConfig(level=logging.DEBUG)
+# ---- App Factory ----
+def create_app():
+    app = Flask(__name__)
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+    app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key-change-in-production")
 
-class Base(DeclarativeBase):
-    pass
+    # ---- DB URI (MySQL via PyMySQL) ----
+    app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:subha12345@localhost:3306/KitabGhar?charset=utf8mb4"
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_recycle": 300, "pool_pre_ping": True}
 
-db = SQLAlchemy(model_class=Base)
+    # ---- File uploads ----
+    app.config["UPLOAD_FOLDER"] = os.path.join(app.root_path, "uploads")
+    app.config["BOOK_COVER_FOLDER"] = os.path.join(app.config["UPLOAD_FOLDER"], "covers")
+    app.config["BOOK_PDF_FOLDER"]   = os.path.join(app.config["UPLOAD_FOLDER"], "pdfs")
+    app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024  # 50 MB
 
-# Create the app
-app = Flask(__name__)
-app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key-change-in-production")
-app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+    # make folders if missing
+    for p in [app.config["UPLOAD_FOLDER"], app.config["BOOK_COVER_FOLDER"], app.config["BOOK_PDF_FOLDER"]]:
+        os.makedirs(p, exist_ok=True)
 
-# Configure the database
-database_url = os.environ.get("DATABASE_URL", "sqlite:///library.db")
-app.config["SQLALCHEMY_DATABASE_URI"] = database_url
-app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-    "pool_recycle": 300,
-    "pool_pre_ping": True,
-}
+    # ---- Init extensions ----
+    db.init_app(app)
+    migrate.init_app(app, db)
 
-# Initialize the app with the extension
-db.init_app(app)
+    # Import models so Alembic sees them
+    with app.app_context():
+        from models import User, Book, Category, Borrowing, Review  # noqa: F401
 
-with app.app_context():
-    # Import models to ensure tables are created
-    import models
-    db.create_all()
-    
-    # Create default admin user if it doesn't exist
-    from models import User
-    from werkzeug.security import generate_password_hash
-    
-    admin = User.query.filter_by(username='admin').first()
-    if not admin:
-        admin_user = User(
-            username='admin',
-            email='admin@library.com',
-            password_hash=generate_password_hash('admin123'),
-            role='admin'
-        )
-        db.session.add(admin_user)
-        db.session.commit()
-        logging.info("Default admin user created: admin/admin123")
+    return app  # REMOVED THE HOME ROUTE FROM HERE
+
+# Create app instance for direct execution
+app = create_app()
+
+# Dev entrypoint
+if __name__ == "__main__":
+    app.run(debug=True)
