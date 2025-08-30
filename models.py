@@ -59,6 +59,11 @@ class Book(db.Model):
     total_copies = db.Column(db.Integer, nullable=False, default=1)  # Added this field
     available_copies = db.Column(db.Integer, nullable=False, default=1)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    isbn = db.Column(db.String(20), unique=True, nullable=True)
+    genre = db.Column(db.String(100))
+    book_type = db.Column(db.String(20), default="Physical")
+    publication_year = db.Column(db.Integer)
+    total_copies = db.Column(db.Integer, default=1)
 
     # Relationships
     borrowings = db.relationship("Borrowing", backref="book", lazy=True)

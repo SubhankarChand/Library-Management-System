@@ -1,7 +1,14 @@
 from functools import wraps
 from flask import session, redirect, url_for, flash
 from extensions import db
+from flask import Blueprint, render_template
 
+auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
+
+@auth_bp.route('/login')
+def login():
+    # Your login logic
+    pass
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):

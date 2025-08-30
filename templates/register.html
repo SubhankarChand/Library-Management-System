@@ -13,17 +13,38 @@
             </div>
             <div class="card-body">
                 <form method="POST" action="{{ url_for('register') }}">
+                    <!-- CSRF Protection -->
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="username" class="form-label">Username</label>
-                                <input type="text" class="form-control" id="username" name="username" required>
+                                <input type="text" class="form-control {% if errors and (not form_data.username or 'Username' in errors|join) %}is-invalid{% endif %}" 
+                                       id="username" name="username" 
+                                       value="{{ form_data.username if form_data else '' }}" required>
+                                {% if errors and (not form_data.username or 'Username' in errors|join) %}
+                                <div class="invalid-feedback">
+                                    {% for error in errors %}
+                                        {% if 'Username' in error %}{{ error }}{% endif %}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="email" class="form-label">Email Address</label>
-                                <input type="email" class="form-control" id="email" name="email" required>
+                                <input type="email" class="form-control {% if errors and (not form_data.email or 'email' in errors|join|lower) %}is-invalid{% endif %}" 
+                                       id="email" name="email" 
+                                       value="{{ form_data.email if form_data else '' }}" required>
+                                {% if errors and (not form_data.email or 'email' in errors|join|lower) %}
+                                <div class="invalid-feedback">
+                                    {% for error in errors %}
+                                        {% if 'email' in error|lower %}{{ error }}{% endif %}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
@@ -32,13 +53,28 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="password" class="form-label">Password</label>
-                                <input type="password" class="form-control" id="password" name="password" required>
+                                <input type="password" class="form-control {% if errors and 'Password' in errors|join %}is-invalid{% endif %}" 
+                                       id="password" name="password" required>
+                                <div class="form-text">Must be at least 8 characters with uppercase, lowercase, and number</div>
+                                {% if errors and 'Password' in errors|join %}
+                                <div class="invalid-feedback">
+                                    {% for error in errors %}
+                                        {% if 'Password' in error %}{{ error }}{% endif %}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label for="confirm_password" class="form-label">Confirm Password</label>
-                                <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                                <input type="password" class="form-control {% if errors and 'Passwords do not match' in errors|join %}is-invalid{% endif %}" 
+                                       id="confirm_password" name="confirm_password" required>
+                                {% if errors and 'Passwords do not match' in errors|join %}
+                                <div class="invalid-feedback">
+                                    Passwords do not match
+                                </div>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
@@ -46,25 +82,35 @@
                     <div class="mb-3">
                         <label class="form-label">Account Type</label>
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="role" id="role_user" value="user" checked>
+                            <input class="form-check-input" type="radio" name="role" id="role_user" value="user" 
+                                   {% if not form_data or form_data.role == 'user' %}checked{% endif %}>
                             <label class="form-check-label" for="role_user">
                                 <i class="fas fa-user"></i> Regular User (Borrow Books)
                             </label>
                         </div>
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="role" id="role_publisher" value="publisher">
+                            <input class="form-check-input" type="radio" name="role" id="role_publisher" value="publisher"
+                                   {% if form_data and form_data.role == 'publisher' %}checked{% endif %}>
                             <label class="form-check-label" for="role_publisher">
                                 <i class="fas fa-building"></i> Publisher (Publish Books)
                             </label>
                         </div>
+                        {% if errors and 'role' in errors|join|lower %}
+                        <div class="text-danger small mt-1">
+                            {% for error in errors %}
+                                {% if 'role' in error|lower %}{{ error }}{% endif %}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
                     </div>
                     
-                    <div id="publisherFields" style="display: none;">
+                    <div id="publisherFields" style="display: {% if form_data and form_data.role == 'publisher' %}block{% else %}none{% endif %};">
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="publisher_name" class="form-label">Publisher/Company Name</label>
-                                    <input type="text" class="form-control" id="publisher_name" name="publisher_name">
+                                    <input type="text" class="form-control" id="publisher_name" name="publisher_name"
+                                           value="{{ form_data.publisher_name if form_data else '' }}">
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -72,12 +118,12 @@
                                     <label for="publisher_type" class="form-label">Publication Type</label>
                                     <select class="form-select" id="publisher_type" name="publisher_type">
                                         <option value="">Select publication type</option>
-                                        <option value="Books">Books</option>
-                                        <option value="Research Papers">Research Papers</option>
-                                        <option value="Magazines">Magazines</option>
-                                        <option value="Journals">Journals</option>
-                                        <option value="Educational Materials">Educational Materials</option>
-                                        <option value="Multiple Types">Multiple Types</option>
+                                        <option value="Books" {% if form_data and form_data.publisher_type == 'Books' %}selected{% endif %}>Books</option>
+                                        <option value="Research Papers" {% if form_data and form_data.publisher_type == 'Research Papers' %}selected{% endif %}>Research Papers</option>
+                                        <option value="Magazines" {% if form_data and form_data.publisher_type == 'Magazines' %}selected{% endif %}>Magazines</option>
+                                        <option value="Journals" {% if form_data and form_data.publisher_type == 'Journals' %}selected{% endif %}>Journals</option>
+                                        <option value="Educational Materials" {% if form_data and form_data.publisher_type == 'Educational Materials' %}selected{% endif %}>Educational Materials</option>
+                                        <option value="Multiple Types" {% if form_data and form_data.publisher_type == 'Multiple Types' %}selected{% endif %}>Multiple Types</option>
                                     </select>
                                 </div>
                             </div>

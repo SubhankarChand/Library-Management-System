@@ -1,9 +1,63 @@
+import re
 from flask import render_template, request, redirect, url_for, flash, session, jsonify, current_app
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
 from extensions import db
-from models import User, Book, Category, Borrowing, Review
 from auth import login_required, admin_required, publisher_required, get_current_user
+from flask import Blueprint, render_template
+from flask import Blueprint, render_template, request, redirect, url_for, flash
+from models import db, User, Book, Category, Borrowing, Review
+
+main_bp = Blueprint('main', __name__)
+
+@main_bp.route('/')
+def home():
+     return render_template("index.html")
+ 
+# List all books
+@main_bp.route("/books")
+def list_books():
+    books = Book.query.all()
+    return render_template("books.html", books=books)
+# Add new book
+@main_bp.route("/books/add", methods=["GET", "POST"])
+def add_book():
+    if request.method == "POST":
+        title = request.form.get("title")
+        author = request.form.get("author")
+        category_id = request.form.get("category_id")
+
+        if not title or not author:
+            flash("Title and author are required!", "danger")
+            return redirect(url_for("main.add_book"))
+
+        new_book = Book(title=title, author=author, category_id=category_id)
+        db.session.add(new_book)
+        db.session.commit()
+        flash("Book added successfully!", "success")
+        return redirect(url_for("main.list_books"))
+
+    categories = Category.query.all()
+    return render_template("add_book.html", categories=categories)
+
+# User registration (simple example)
+@main_bp.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        name = request.form.get("name")
+        email = request.form.get("email")
+
+        if not name or not email:
+            flash("Name and email are required!", "danger")
+            return redirect(url_for("main.register"))
+
+        new_user = User(name=name, email=email)
+        db.session.add(new_user)
+        db.session.commit()
+        flash("Registration successful!", "success")
+        return redirect(url_for("main.home"))
+
+    return render_template("register.html")
 
 # ----- Helper Functions -----
 def get_user_stats(user_id):
@@ -51,22 +105,63 @@ def register():
         password = request.form['password']
         confirm_password = request.form['confirm_password']
         role = request.form['role']
+        publisher_name = request.form.get('publisher_name', '')
+        publisher_type = request.form.get('publisher_type', '')
         
-        # Validate passwords match
+        # Input validation
+        errors = []
+        
+        # Validate username
+        if not username or len(username.strip()) < 3:
+            errors.append('Username must be at least 3 characters long.')
+        elif not re.match(r'^[a-zA-Z0-9_]+$', username):
+            errors.append('Username can only contain letters, numbers, and underscores.')
+        
+        # Validate email
+        if not email or not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
+            errors.append('Please enter a valid email address.')
+        
+        # Validate password
+        if not password or len(password) < 8:
+            errors.append('Password must be at least 8 characters long.')
+        elif not any(char.isdigit() for char in password):
+            errors.append('Password must contain at least one number.')
+        elif not any(char.isupper() for char in password):
+            errors.append('Password must contain at least one uppercase letter.')
+        elif not any(char.islower() for char in password):
+            errors.append('Password must contain at least one lowercase letter.')
+        
+        # Validate password confirmation
         if password != confirm_password:
-            flash('Passwords do not match', 'danger')
-            return redirect(url_for('register'))
+            errors.append('Passwords do not match.')
         
-        # Check if user exists
-        if User.query.filter_by(email=email).first():
-            flash('Email already registered', 'danger')
-            return redirect(url_for('register'))
+        # Validate role
+        valid_roles = ['admin', 'publisher', 'user']
+        if role not in valid_roles:
+            errors.append('Please select a valid role.')
         
-        if User.query.filter_by(username=username).first():
-            flash('Username already taken', 'danger')
-            return redirect(url_for('register'))
+        # Check if user exists (only if no validation errors so far)
+        if not errors:
+            if User.query.filter_by(email=email).first():
+                errors.append('Email already registered.')
+            
+            if User.query.filter_by(username=username).first():
+                errors.append('Username already taken.')
         
-        # Create new user
+        # If there are errors, show them and return to form with data
+        if errors:
+            form_data = {
+                'username': username,
+                'email': email,
+                'role': role,
+                'publisher_name': publisher_name,
+                'publisher_type': publisher_type
+            }
+            return render_template('register.html', 
+                                 errors=errors,
+                                 form_data=form_data)
+        
+        # Create new user if no errors
         hashed_password = generate_password_hash(password)
         new_user = User(
             username=username,
