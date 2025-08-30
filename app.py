@@ -1,12 +1,11 @@
 import os
-import re
 from flask import Flask
 from werkzeug.middleware.proxy_fix import ProxyFix
-from werkzeug.utils import secure_filename
 from flask_wtf.csrf import CSRFProtect
 from dotenv import load_dotenv
 from extensions import db, migrate
-
+from blueprints.auth import auth_bp
+from blueprints.main import main_bp
 
 # Load environment variables
 load_dotenv()
@@ -54,15 +53,13 @@ def create_app():
     csrf = CSRFProtect()
     csrf.init_app(app)
 
-    # Register blueprints
-    from auth import auth_bp
-    from routes import main_bp
-    
+    # ✅ Register blueprints
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
 
     return app
 
+# Run the app
 app = create_app()
 
 if __name__ == "__main__":
