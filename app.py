@@ -32,7 +32,11 @@ def create_app():
     with app.app_context():
         from models import User, Book, Category, Borrowing, Review  # noqa: F401
 
-    return app  # REMOVED THE HOME ROUTE FROM HERE
+    # ---- Register routes ----
+    from routes import register_routes
+    register_routes(app)
+
+    return app
 
 # Create app instance for direct execution
 app = create_app()

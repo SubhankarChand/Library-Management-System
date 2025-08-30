@@ -1,6 +1,6 @@
 from datetime import datetime
 from sqlalchemy import UniqueConstraint, Index, CheckConstraint, ForeignKey
-from sqlalchemy.dialects.mysql import VARCHAR, INTEGER, TINYINT
+from sqlalchemy.dialects.mysql import VARCHAR, INTEGER, TINYINT, TEXT
 from sqlalchemy.orm import validates, relationship
 from extensions import db
 
@@ -13,6 +13,7 @@ class User(db.Model):
     email = db.Column(VARCHAR(255), unique=True, nullable=False)
     password_hash = db.Column(VARCHAR(255), nullable=False)
     role = db.Column(VARCHAR(20), nullable=False, default="user")
+    is_active = db.Column(db.Boolean, default=True)  # Added this field
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relationships
@@ -36,9 +37,6 @@ class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(VARCHAR(100), unique=True, nullable=False)
 
-    # Remove the relationship to books since we're using a simple string category
-    # books = db.relationship("Book", backref="book_category", lazy=True)
-
     def __repr__(self):
         return f"<Category {self.name}>"
 
@@ -49,11 +47,16 @@ class Book(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(VARCHAR(200), nullable=False)
     author = db.Column(VARCHAR(150), nullable=False)
-    description = db.Column(db.Text)
-    category = db.Column(VARCHAR(100))  # Simple string field, not foreign key
+    isbn = db.Column(VARCHAR(20), unique=True, nullable=True)  # Added this field
+    description = db.Column(TEXT)
+    genre = db.Column(VARCHAR(100))  # Added this field
+    category = db.Column(VARCHAR(100))
+    book_type = db.Column(VARCHAR(20), default="Physical")  # Added this field
     cover_image = db.Column(VARCHAR(255))
-    pdf_file = db.Column(VARCHAR(255))
+    pdf_file = db.Column(VARCHAR(255))  # Changed from pdf_file_path
+    publication_year = db.Column(db.Integer)  # Added this field
     publisher_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
+    total_copies = db.Column(db.Integer, nullable=False, default=1)  # Added this field
     available_copies = db.Column(db.Integer, nullable=False, default=1)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -81,24 +84,17 @@ class Borrowing(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     book_id = db.Column(db.Integer, db.ForeignKey("books.id"), nullable=False)
-    borrow_date = db.Column(db.DateTime, default=datetime.utcnow)
-    return_date = db.Column(db.DateTime)
-    status = db.Column(VARCHAR(20), default="borrowed")
+    borrowed_date = db.Column(db.DateTime, default=datetime.utcnow)  # Changed from borrow_date
+    due_date = db.Column(db.DateTime)  # Added this field
+    returned_date = db.Column(db.DateTime)  # Added this field
+    is_returned = db.Column(db.Boolean, default=False)  # Added this field
 
     __table_args__ = (
-        UniqueConstraint("user_id", "book_id", "status", name="uq_active_borrow_per_user_book"),
+        UniqueConstraint("user_id", "book_id", name="uq_active_borrow_per_user_book"),
     )
 
-    @property
-    def is_returned(self):
-        return self.status == "returned"
-
-    @property
-    def borrowed_date(self):
-        return self.borrow_date
-
     def __repr__(self):
-        return f"<Borrowing u={self.user_id} b={self.book_id} status={self.status}>"
+        return f"<Borrowing u={self.user_id} b={self.book_id} returned={self.is_returned}>"
 
 # ---------------- REVIEWS ----------------
 class Review(db.Model):
@@ -108,7 +104,7 @@ class Review(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     book_id = db.Column(db.Integer, db.ForeignKey("books.id"), nullable=False)
     rating = db.Column(TINYINT(unsigned=True), nullable=False)
-    comment = db.Column(db.Text, nullable=False)
+    content = db.Column(TEXT, nullable=False)  # Changed from comment
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     __table_args__ = (

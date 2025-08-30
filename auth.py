@@ -1,6 +1,6 @@
 from functools import wraps
 from flask import session, redirect, url_for, flash
-from models import User
+from extensions import db
 
 def login_required(f):
     @wraps(f)
@@ -16,7 +16,7 @@ def admin_required(f):
     def decorated_function(*args, **kwargs):
         if session.get("role") != "admin":
             flash("Admins only!", "danger")
-            return redirect(url_for("home"))
+            return redirect(url_for("index"))  # Changed from "home" to "index"
         return f(*args, **kwargs)
     return decorated_function
 
@@ -25,11 +25,13 @@ def publisher_required(f):
     def decorated_function(*args, **kwargs):
         if session.get("role") != "publisher":
             flash("Publishers only!", "danger")
-            return redirect(url_for("home"))
+            return redirect(url_for("index"))  # Changed from "home" to "index"
         return f(*args, **kwargs)
     return decorated_function
 
 def get_current_user():
     if "user_id" in session:
+        # Import here to avoid circular imports
+        from models import User
         return User.query.get(session["user_id"])
     return None

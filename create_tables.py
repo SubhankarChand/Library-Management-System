@@ -1,5 +1,6 @@
 from app import create_app, db
 from models import User, Book, Category, Borrowing, Review
+from sqlalchemy import inspect
 
 def create_tables():
     app = create_app()
@@ -9,8 +10,8 @@ def create_tables():
         db.create_all()
         print("All tables created successfully!")
         
-        # Verify tables were created (updated method for newer SQLAlchemy)
-        inspector = db.engine.inspector
+        # Verify tables were created
+        inspector = inspect(db.engine)
         tables = inspector.get_table_names()
         print("Tables in database:", tables)
 
