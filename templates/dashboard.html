@@ -1,758 +1,113 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Library Management System</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        :root {
-            --user-color: #4e73df;
-            --admin-color: #1cc88a;
-            --publisher-color: #f6c23e;
-        }
-        
-        body {
-            background-color: #f8f9fc;
-            font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-        
-        .card-dashboard {
-            border-radius: 10px;
-            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
-            margin-bottom: 1.5rem;
-            transition: transform 0.3s;
-        }
-        
-        .card-dashboard:hover {
-            transform: translateY(-5px);
-        }
-        
-        .user-card {
-            border-left: 4px solid var(--user-color);
-        }
-        
-        .admin-card {
-            border-left: 4px solid var(--admin-color);
-        }
-        
-        .publisher-card {
-            border-left: 4px solid var(--publisher-color);
-        }
-        
-        .user-text { color: var(--user-color); }
-        .admin-text { color: var(--admin-color); }
-        .publisher-text { color: var(--publisher-color); }
-        
-        .login-form {
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
-            padding: 2rem;
-        }
-        
-        .role-selector {
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .role-selector:hover, .role-selector.active {
-            transform: scale(1.05);
-        }
-        
-        .dashboard-section {
-            display: none;
-        }
-        
-        .active-section {
-            display: block;
-        }
-        
-        .book-cover {
-            height: 180px;
-            object-fit: cover;
-        }
-        
-        .stat-card {
-            border-radius: 8px;
-            color: white;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-    </style>
-</head>
-<body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="#">
-                <i class="fas fa-book-reader me-2"></i>Library Management System
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="#" id="home-link">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#" id="login-link">Login</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#" id="register-link">Register</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+{% extends "base.html" %}
 
-    <div class="container mt-5">
-        <!-- Home Section -->
-        <div id="home-section" class="active-section">
-            <div class="row mb-5">
-                <div class="col-lg-12 text-center">
-                    <h1 class="display-4 mb-4">Welcome to Our Library</h1>
-                    <p class="lead">A complete library management system with separate interfaces for Users, Admins, and Publishers</p>
-                </div>
-            </div>
-            
-            <div class="row">
-                <div class="col-lg-4 mb-4">
-                    <div class="card card-dashboard user-card h-100">
-                        <div class="card-body">
-                            <div class="text-center">
-                                <i class="fas fa-user fa-3x user-text mb-3"></i>
-                                <h4 class="card-title user-text">User Dashboard</h4>
-                                <p class="card-text">Browse our collection, borrow books, and manage your account.</p>
-                                <button class="btn btn-outline-primary user-login">Login as User</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-lg-4 mb-4">
-                    <div class="card card-dashboard admin-card h-100">
-                        <div class="card-body">
-                            <div class="text-center">
-                                <i class="fas fa-cog fa-3x admin-text mb-3"></i>
-                                <h4 class="card-title admin-text">Admin Dashboard</h4>
-                                <p class="card-text">Manage users, books, and oversee library operations.</p>
-                                <button class="btn btn-outline-success admin-login">Login as Admin</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-lg-4 mb-4">
-                    <div class="card card-dashboard publisher-card h-100">
-                        <div class="card-body">
-                            <div class="text-center">
-                                <i class="fas fa-book fa-3x publisher-text mb-3"></i>
-                                <h4 class="card-title publisher-text">Publisher Dashboard</h4>
-                                <p class="card-text">Manage your published books and track their performance.</p>
-                                <button class="btn btn-outline-warning publisher-login">Login as Publisher</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+{% block title %}Publisher Dashboard - KitabGhar{% endblock %}
 
-        <!-- Login Section -->
-        <div id="login-section" class="dashboard-section">
-            <div class="row justify-content-center">
-                <div class="col-lg-6">
-                    <div class="login-form">
-                        <h2 class="text-center mb-4">Login to Your Account</h2>
-                        
-                        <div class="row mb-4 text-center">
-                            <div class="col-4">
-                                <div class="role-selector" data-role="user">
-                                    <i class="fas fa-user fa-2x user-text"></i>
-                                    <p class="mt-2">User</p>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="role-selector" data-role="admin">
-                                    <i class="fas fa-cog fa-2x admin-text"></i>
-                                    <p class="mt-2">Admin</p>
-                                </div>
-                            </div>
-                            <div class="col-4">
-                                <div class="role-selector" data-role="publisher">
-                                    <i class="fas fa-book fa-2x publisher-text"></i>
-                                    <p class="mt-2">Publisher</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <form id="login-form">
-                            <div class="mb-3">
-                                <label for="email" class="form-label">Email address</label>
-                                <input type="email" class="form-control" id="email" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="password" class="form-label">Password</label>
-                                <input type="password" class="form-control" id="password" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary w-100">Login</button>
-                        </form>
-                        
-                        <div class="text-center mt-3">
-                            <p>Don't have an account? <a href="#" id="goto-register">Register here</a></p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2"><i class="fas fa-building"></i> Publisher Dashboard</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{{ url_for('main.add_book') }}" class="btn btn-sm btn-outline-success">
+            <i class="fas fa-plus"></i> Add New Book
+        </a>
+    </div>
+</div>
 
-        <!-- Register Section -->
-        <div id="register-section" class="dashboard-section">
-            <div class="row justify-content-center">
-                <div class="col-lg-8">
-                    <div class="login-form">
-                        <h2 class="text-center mb-4">Create a New Account</h2>
-                        
-                        <form id="register-form">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="reg-name" class="form-label">Full Name</label>
-                                    <input type="text" class="form-control" id="reg-name" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="reg-email" class="form-label">Email address</label>
-                                    <input type="email" class="form-control" id="reg-email" required>
-                                </div>
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="reg-password" class="form-label">Password</label>
-                                    <input type="password" class="form-control" id="reg-password" required>
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="reg-confirm-password" class="form-label">Confirm Password</label>
-                                    <input type="password" class="form-control" id="reg-confirm-password" required>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label class="form-label">Register as</label>
-                                <div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="reg-role" id="reg-user" value="user" checked>
-                                        <label class="form-check-label" for="reg-user">User</label>
-                                    </div>
-                                    <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="reg-role" id="reg-publisher" value="publisher">
-                                        <label class="form-check-label" for="reg-publisher">Publisher</label>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div id="publisher-fields" class="mb-3" style="display: none;">
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="publisher-name" class="form-label">Publisher Name</label>
-                                        <input type="text" class="form-control" id="publisher-name">
-                                    </div>
-                                    <div class="col-md-6 mb-3">
-                                        <label for="publisher-address" class="form-label">Address</label>
-                                        <input type="text" class="form-control" id="publisher-address">
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <button type="submit" class="btn btn-primary w-100">Register</button>
-                        </form>
-                        
-                        <div class="text-center mt-3">
-                            <p>Already have an account? <a href="#" id="goto-login">Login here</a></p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- User Dashboard Section -->
-        <div id="user-dashboard" class="dashboard-section">
-            <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                <h1 class="h3 mb-0 user-text">User Dashboard</h1>
-                <button class="btn btn-sm btn-outline-secondary logout-btn">Logout</button>
-            </div>
-            
-            <div class="row">
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="stat-card bg-primary">
-                        <div class="row">
-                            <div class="col-9">
-                                <div class="text-xs font-weight-bold text-uppercase mb-1">Books Borrowed</div>
-                                <div class="h5 mb-0">5</div>
-                            </div>
-                            <div class="col-3 text-end">
-                                <i class="fas fa-book fa-2x"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="stat-card bg-success">
-                        <div class="row">
-                            <div class="col-9">
-                                <div class="text-xs font-weight-bold text-uppercase mb-1">Return Due</div>
-                                <div class="h5 mb-0">2</div>
-                            </div>
-                            <div class="col-3 text-end">
-                                <i class="fas fa-calendar fa-2x"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="stat-card bg-warning">
-                        <div class="row">
-                            <div class="col-9">
-                                <div class="text-xs font-weight-bold text-uppercase mb-1">Fines</div>
-                                <div class="h5 mb-0">$5.00</div>
-                            </div>
-                            <div class="col-3 text-end">
-                                <i class="fas fa-dollar-sign fa-2x"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="stat-card bg-info">
-                        <div class="row">
-                            <div class="col-9">
-                                <div class="text-xs font-weight-bold text-uppercase mb-1">Wishlist</div>
-                                <div class="h5 mb-0">3</div>
-                            </div>
-                            <div class="col-3 text-end">
-                                <i class="fas fa-heart fa-2x"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <h5 class="user-text">Available Books</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-4 mb-4">
-                                    <div class="card h-100">
-                                        <img src="https://via.placeholder.com/200x250/4e73df/ffffff?text=Book+Cover" class="card-img-top book-cover" alt="Book Cover">
-                                        <div class="card-body">
-                                            <h5 class="card-title">Introduction to Programming</h5>
-                                            <p class="card-text">John Doe</p>
-                                            <p class="card-text"><small class="text-muted">Published: 2023</small></p>
-                                        </div>
-                                        <div class="card-footer">
-                                            <button class="btn btn-sm btn-primary">Borrow</button>
-                                            <button class="btn btn-sm btn-outline-secondary">Details</button>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="col-md-4 mb-4">
-                                    <div class="card h-100">
-                                        <img src="https://via.placeholder.com/200x250/1cc88a/ffffff?text=Book+Cover" class="card-img-top book-cover" alt="Book Cover">
-                                        <div class="card-body">
-                                            <h5 class="card-title">Data Structures</h5>
-                                            <p class="card-text">Jane Smith</p>
-                                            <p class="card-text"><small class="text-muted">Published: 2022</small></p>
-                                        </div>
-                                        <div class="card-footer">
-                                            <button class="btn btn-sm btn-primary">Borrow</button>
-                                            <button class="btn btn-sm btn-outline-secondary">Details</button>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="col-md-4 mb-4">
-                                    <div class="card h-100">
-                                        <img src="https://via.placeholder.com/200x250/f6c23e/ffffff?text=Book+Cover" class="card-img-top book-cover" alt="Book Cover">
-                                        <div class="card-body">
-                                            <h5 class="card-title">Algorithms</h5>
-                                            <p class="card-text">Robert Johnson</p>
-                                            <p class="card-text"><small class="text-muted">Published: 2021</small></p>
-                                        </div>
-                                        <div class="card-footer">
-                                            <button class="btn btn-sm btn-primary">Borrow</button>
-                                            <button class="btn btn-sm btn-outline-secondary">Details</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Admin Dashboard Section -->
-        <div id="admin-dashboard" class="dashboard-section">
-            <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                <h1 class="h3 mb-0 admin-text">Admin Dashboard</h1>
-                <button class="btn btn-sm btn-outline-secondary logout-btn">Logout</button>
-            </div>
-            
-            <div class="row">
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="stat-card bg-primary">
-                        <div class="row">
-                            <div class="col-9">
-                                <div class="text-xs font-weight-bold text-uppercase mb-1">Total Books</div>
-                                <div class="h5 mb-0">1,248</div>
-                            </div>
-                            <div class="col-3 text-end">
-                                <i class="fas fa-book fa-2x"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="stat-card bg-success">
-                        <div class="row">
-                            <div class="col-9">
-                                <div class="text-xs font-weight-bold text-uppercase mb-1">Active Users</div>
-                                <div class="h5 mb-0">356</div>
-                            </div>
-                            <div class="col-3 text-end">
-                                <i class="fas fa-users fa-2x"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="stat-card bg-warning">
-                        <div class="row">
-                            <div class="col-9">
-                                <div class="text-xs font-weight-bold text-uppercase mb-1">Publishers</div>
-                                <div class="h5 mb-0">42</div>
-                            </div>
-                            <div class="col-3 text-end">
-                                <i class="fas fa-book-open fa-2x"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="stat-card bg-info">
-                        <div class="row">
-                            <div class="col-9">
-                                <div class="text-xs font-weight-bold text-uppercase mb-1">Borrowed Books</div>
-                                <div class="h5 mb-0">189</div>
-                            </div>
-                            <div class="col-3 text-end">
-                                <i class="fas fa-clipboard-list fa-2x"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="row">
-                <div class="col-lg-6">
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <h5 class="admin-text">Quick Actions</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="d-grid gap-2">
-                                <button class="btn btn-outline-primary text-start"><i class="fas fa-plus me-2"></i> Add New Book</button>
-                                <button class="btn btn-outline-success text-start"><i class="fas fa-user me-2"></i> Manage Users</button>
-                                <button class="btn btn-outline-warning text-start"><i class="fas fa-book me-2"></i> Manage Publishers</button>
-                                <button class="btn btn-outline-info text-start"><i class="fas fa-history me-2"></i> View Borrowing History</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-lg-6">
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <h5 class="admin-text">Recent Activities</h5>
-                        </div>
-                        <div class="card-body">
-                            <ul class="list-group list-group-flush">
-                                <li class="list-group-item">User John borrowed "Introduction to Programming"</li>
-                                <li class="list-group-item">New user registered: Sarah Johnson</li>
-                                <li class="list-group-item">Publisher "Tech Books Inc." added 5 new books</li>
-                                <li class="list-group-item">Book "Data Structures" was returned</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Publisher Dashboard Section -->
-        <div id="publisher-dashboard" class="dashboard-section">
-            <div class="d-sm-flex align-items-center justify-content-between mb-4">
-                <h1 class="h3 mb-0 publisher-text">Publisher Dashboard</h1>
-                <button class="btn btn-sm btn-outline-secondary logout-btn">Logout</button>
-            </div>
-            
-            <div class="row">
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="stat-card bg-primary">
-                        <div class="row">
-                            <div class="col-9">
-                                <div class="text-xs font-weight-bold text-uppercase mb-1">Published Books</div>
-                                <div class="h5 mb-0">56</div>
-                            </div>
-                            <div class="col-3 text-end">
-                                <i class="fas fa-book fa-2x"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="stat-card bg-success">
-                        <div class="row">
-                            <div class="col-9">
-                                <div class="text-xs font-weight-bold text-uppercase mb-1">Currently Borrowed</div>
-                                <div class="h5 mb-0">23</div>
-                            </div>
-                            <div class="col-3 text-end">
-                                <i class="fas fa-clipboard-check fa-2x"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="stat-card bg-warning">
-                        <div class="row">
-                            <div class="col-9">
-                                <div class="text-xs font-weight-bold text-uppercase mb-1">Total Revenue</div>
-                                <div class="h5 mb-0">$1,245</div>
-                            </div>
-                            <div class="col-3 text-end">
-                                <i class="fas fa-dollar-sign fa-2x"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-xl-3 col-md-6 mb-4">
-                    <div class="stat-card bg-info">
-                        <div class="row">
-                            <div class="col-9">
-                                <div class="text-xs font-weight-bold text-uppercase mb-1">Average Rating</div>
-                                <div class="h5 mb-0">4.6/5</div>
-                            </div>
-                            <div class="col-3 text-end">
-                                <i class="fas fa-star fa-2x"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="row">
-                <div class="col-lg-12">
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <h5 class="publisher-text">Your Books</h5>
-                            <button class="btn btn-sm btn-warning">Add New Book</button>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-bordered">
-                                    <thead>
-                                        <tr>
-                                            <th>Title</th>
-                                            <th>Author</th>
-                                            <th>Published Date</th>
-                                            <th>Borrow Count</th>
-                                            <th>Rating</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>Introduction to Programming</td>
-                                            <td>John Doe</td>
-                                            <td>2023-01-15</td>
-                                            <td>45</td>
-                                            <td>4.8</td>
-                                            <td>
-                                                <button class="btn btn-sm btn-outline-primary">Edit</button>
-                                                <button class="btn btn-sm btn-outline-danger">Delete</button>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>Data Structures</td>
-                                            <td>Jane Smith</td>
-                                            <td>2022-08-22</td>
-                                            <td>32</td>
-                                            <td>4.5</td>
-                                            <td>
-                                                <button class="btn btn-sm btn-outline-primary">Edit</button>
-                                                <button class="btn btn-sm btn-outline-danger">Delete</button>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>Algorithms</td>
-                                            <td>Robert Johnson</td>
-                                            <td>2021-05-10</td>
-                                            <td>28</td>
-                                            <td>4.2</td>
-                                            <td>
-                                                <button class="btn btn-sm btn-outline-primary">Edit</button>
-                                                <button class="btn btn-sm btn-outline-danger">Delete</button>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h3>{{ published_books }}</h3>
+                <p class="mb-0">Total Books Published</p>
+                <i class="fas fa-book card-icon"></i>
             </div>
         </div>
     </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h3>{{ available_copies }}</h3>
+                <p class="mb-0">Copies Available</p>
+                <i class="fas fa-check-circle card-icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h3>{{ borrowed_count }}</h3>
+                <p class="mb-0">Times Borrowed</p>
+                <i class="fas fa-book-reader card-icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-dark">
+            <div class="card-body">
+                <h3>{{ '%.2f'|format(average_rating) }} <i class="fas fa-star"></i></h3>
+                <p class="mb-0">Average Rating</p>
+                <i class="fas fa-star-half-alt card-icon"></i>
+            </div>
+        </div>
+    </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Navigation
-            document.getElementById('login-link').addEventListener('click', function(e) {
-                e.preventDefault();
-                showSection('login-section');
-            });
-            
-            document.getElementById('register-link').addEventListener('click', function(e) {
-                e.preventDefault();
-                showSection('register-section');
-            });
-            
-            document.getElementById('home-link').addEventListener('click', function(e) {
-                e.preventDefault();
-                showSection('home-section');
-            });
-            
-            document.getElementById('goto-register').addEventListener('click', function(e) {
-                e.preventDefault();
-                showSection('register-section');
-            });
-            
-            document.getElementById('goto-login').addEventListener('click', function(e) {
-                e.preventDefault();
-                showSection('login-section');
-            });
-            
-            // Role selection in login
-            const roleSelectors = document.querySelectorAll('.role-selector');
-            roleSelectors.forEach(selector => {
-                selector.addEventListener('click', function() {
-                    roleSelectors.forEach(s => s.classList.remove('active'));
-                    this.classList.add('active');
-                });
-            });
-            
-            // Show publisher fields when publisher is selected during registration
-            const regUser = document.getElementById('reg-user');
-            const regPublisher = document.getElementById('reg-publisher');
-            const publisherFields = document.getElementById('publisher-fields');
-            
-            regUser.addEventListener('change', function() {
-                publisherFields.style.display = 'none';
-            });
-            
-            regPublisher.addEventListener('change', function() {
-                publisherFields.style.display = 'block';
-            });
-            
-            // Login buttons on home page
-            document.querySelector('.user-login').addEventListener('click', function() {
-                showSection('login-section');
-                document.querySelector('[data-role="user"]').click();
-            });
-            
-            document.querySelector('.admin-login').addEventListener('click', function() {
-                showSection('login-section');
-                document.querySelector('[data-role="admin"]').click();
-            });
-            
-            document.querySelector('.publisher-login').addEventListener('click', function() {
-                showSection('login-section');
-                document.querySelector('[data-role="publisher"]').click();
-            });
-            
-            // Form submissions
-            document.getElementById('login-form').addEventListener('submit', function(e) {
-                e.preventDefault();
-                const email = document.getElementById('email').value;
-                const password = document.getElementById('password').value;
-                const activeRole = document.querySelector('.role-selector.active');
-                
-                if (!activeRole) {
-                    alert('Please select a role');
-                    return;
-                }
-                
-                const role = activeRole.getAttribute('data-role');
-                
-                // Simulate login - in real app, this would be an API call
-                if (email && password) {
-                    if (role === 'user') showSection('user-dashboard');
-                    else if (role === 'admin') showSection('admin-dashboard');
-                    else if (role === 'publisher') showSection('publisher-dashboard');
-                } else {
-                    alert('Please enter email and password');
-                }
-            });
-            
-            document.getElementById('register-form').addEventListener('submit', function(e) {
-                e.preventDefault();
-                const name = document.getElementById('reg-name').value;
-                const email = document.getElementById('reg-email').value;
-                const password = document.getElementById('reg-password').value;
-                const confirmPassword = document.getElementById('reg-confirm-password').value;
-                const role = document.querySelector('input[name="reg-role"]:checked').value;
-                
-                if (password !== confirmPassword) {
-                    alert('Passwords do not match');
-                    return;
-                }
-                
-                // Simulate registration - in real app, this would be an API call
-                alert(`Registration successful for ${name} as ${role}`);
-                showSection('login-section');
-            });
-            
-            // Logout buttons
-            document.querySelectorAll('.logout-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    showSection('home-section');
-                });
-            });
-            
-            // Function to show a specific section and hide others
-            function showSection(sectionId) {
-                document.querySelectorAll('.dashboard-section').forEach(section => {
-                    section.classList.remove('active-section');
-                });
-                document.getElementById(sectionId).classList.add('active-section');
-            }
-        });
-    </script>
-</body>
-</html>
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Your Published Books</h5>
+    </div>
+    <div class="card-body">
+        {% if books %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Author</th>
+                        <th>ISBN</th>
+                        <th>Copies (Avail/Total)</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for book in books %}
+                    <tr>
+                        <td>{{ book.title }}</td>
+                        <td>{{ book.author }}</td>
+                        <td>{{ book.isbn }}</td>
+                        <td>{{ book.available_copies }} / {{ book.total_copies }}</td>
+                        <td>
+                            <a href="{{ url_for('main.edit_book', book_id=book.id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                            <a href="{{ url_for('main.delete_book', book_id=book.id) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this book?')">
+                                <i class="fas fa-trash"></i> Delete
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-book-dead fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">You haven't published any books yet.</h5>
+            <a href="{{ url_for('main.add_book') }}" class="btn btn-primary mt-3">
+                <i class="fas fa-plus"></i> Publish Your First Book
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.card-icon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 2.5rem;
+    opacity: 0.3;
+}
+</style>
+{% endblock %}

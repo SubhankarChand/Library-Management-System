@@ -1,96 +1,47 @@
-import os
-from flask import Flask, render_template
-from werkzeug.middleware.proxy_fix import ProxyFix
-from extensions import db, migrate
+{% extends "base.html" %}
 
-# ---- App Factory ----
-def create_app():
-    app = Flask(__name__)
-    app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
-    app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key-change-in-production")
+{% block title %}Welcome to KitabGhar{% endblock %}
 
-    # ---- DB URI (MySQL via PyMySQL) ----
-    app.config["SQLALCHEMY_DATABASE_URI"] = "mysql+pymysql://root:subha12345@localhost:3306/KitabGhar?charset=utf8mb4"
-    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_recycle": 300, "pool_pre_ping": True}
+{% block content %}
+{# This block is intentionally left empty to remove the sidebar on the welcome page #}
+{% endblock %}
 
-    # ---- File uploads ----
-    app.config["UPLOAD_FOLDER"] = os.path.join(app.root_path, "uploads")
-    app.config["BOOK_COVER_FOLDER"] = os.path.join(app.config["UPLOAD_FOLDER"], "covers")
-    app.config["BOOK_PDF_FOLDER"]   = os.path.join(app.config["UPLOAD_FOLDER"], "pdfs")
-    app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024  # 50 MB
+{% block body_content %}
+<div class="welcome-hero">
+    <div class="container text-center">
+        <h1 class="display-3">Discover Your Next Favorite Book</h1>
+        <p class="lead">KitabGhar is your personal online library. Borrow, read, and explore a vast collection of books from various genres.</p>
+        <a href="{{ url_for('main.register') }}" class="btn btn-primary btn-lg mt-3">Get Started for Free</a>
+        <a href="{{ url_for('main.login') }}" class="btn btn-outline-light btn-lg mt-3">Login</a>
+    </div>
+</div>
 
-    # make folders if missing
-    for p in [app.config["UPLOAD_FOLDER"], app.config["BOOK_COVER_FOLDER"], app.config["BOOK_PDF_FOLDER"]]:
-        os.makedirs(p, exist_ok=True)
-
-    # ---- Init extensions ----
-    db.init_app(app)
-    migrate.init_app(app, db)
-
-    # Import models so Alembic sees them
-    with app.app_context():
-        from models import User, Book, Category, Borrowing, Review  # noqa: F401
-
-    # ---- Add basic home route ----
-    @app.route('/')
-    def index():
-        from auth import get_current_user
-        from models import Book
-        
-        # Fetch some books to display on the home page
-        books = Book.query.filter(Book.available_copies > 0).order_by(Book.created_at.desc()).limit(6).all()
-        
-        return render_template('index.html', 
-                             current_user=get_current_user(),
-                             books=books,
-                             search='',
-                             selected_category='',
-                             selected_book_type='',
-                             selected_status='',
-                             categories=[],
-                             book_types=[])
-
-    return app
-
-# Create app instance for direct execution
-app = create_app()
-
-# Import routes after app is created to avoid circular imports
-# We need to do this carefully to avoid circular imports
-try:
-    with app.app_context():
-        # Import routes but don't use the same function names
-        from routes import books_index, register, login, logout, user_dashboard, admin_dashboard, publisher_dashboard, add_book, edit_book, borrow_book, return_book, borrowing_history, manage_users, delete_user, toggle_user_status, download_book, add_review, not_found_error, internal_error, api_books, api_user_stats
-        
-        # Register all routes manually to avoid conflicts
-        app.add_url_rule('/register', view_func=register, methods=['GET', 'POST'])
-        app.add_url_rule('/login', view_func=login, methods=['GET', 'POST'])
-        app.add_url_rule('/logout', view_func=logout)
-        app.add_url_rule('/user/dashboard', view_func=user_dashboard)
-        app.add_url_rule('/admin/dashboard', view_func=admin_dashboard)
-        app.add_url_rule('/publisher/dashboard', view_func=publisher_dashboard)
-        app.add_url_rule('/books', view_func=books_index)
-        app.add_url_rule('/book/add', view_func=add_book, methods=['GET', 'POST'])
-        app.add_url_rule('/book/edit/<int:book_id>', view_func=edit_book, methods=['GET', 'POST'])
-        app.add_url_rule('/borrow/<int:book_id>', view_func=borrow_book)
-        app.add_url_rule('/return/<int:borrow_id>', view_func=return_book)
-        app.add_url_rule('/borrowing-history', view_func=borrowing_history)
-        app.add_url_rule('/admin/users', view_func=manage_users)
-        app.add_url_rule('/admin/user/delete/<int:user_id>', view_func=delete_user)
-        app.add_url_rule('/admin/user/toggle/<int:user_id>', view_func=toggle_user_status)
-        app.add_url_rule('/download/<int:book_id>', view_func=download_book)
-        app.add_url_rule('/review/<int:book_id>', view_func=add_review, methods=['POST'])
-        app.add_url_rule('/api/books', view_func=api_books)
-        app.add_url_rule('/api/user/stats', view_func=api_user_stats)
-        
-        # Error handlers
-        app.register_error_handler(404, not_found_error)
-        app.register_error_handler(500, internal_error)
-        
-except ImportError as e:
-    print(f"Error importing routes: {e}")
-
-# Dev entrypoint
-if __name__ == "__main__":
-    app.run(debug=True)
+<div class="feature-section">
+    <div class="container py-5">
+        <h2 class="text-center mb-5">Why Choose KitabGhar?</h2>
+        <div class="row">
+            <div class="col-md-4 text-center">
+                <div class="feature-card">
+                    <i class="fas fa-book-open fa-3x text-primary mb-3"></i>
+                    <h4>Vast Collection</h4>
+                    <p>Access thousands of titles across all your favorite genres.</p>
+                </div>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="feature-card">
+                    <i class="fas fa-mobile-alt fa-3x text-primary mb-3"></i>
+                    <h4>Read Anywhere</h4>
+                    <p>Enjoy your books on any device, anytime, anywhere.</p>
+                </div>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="feature-card">
+                    <i class="fas fa-users fa-3x text-primary mb-3"></i>
+                    <h4>Community</h4>
+                    <p>Join a community of readers and share your thoughts.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -47,23 +47,18 @@ class Book(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(VARCHAR(200), nullable=False)
     author = db.Column(VARCHAR(150), nullable=False)
-    isbn = db.Column(VARCHAR(20), unique=True, nullable=True)  # Added this field
+    isbn = db.Column(VARCHAR(20), unique=True, nullable=True) # Kept the VARCHAR version
     description = db.Column(TEXT)
-    genre = db.Column(VARCHAR(100))  # Added this field
+    genre = db.Column(VARCHAR(100)) # Kept the VARCHAR version
     category = db.Column(VARCHAR(100))
-    book_type = db.Column(VARCHAR(20), default="Physical")  # Added this field
+    book_type = db.Column(VARCHAR(20), default="Physical") # Kept the VARCHAR version
     cover_image = db.Column(VARCHAR(255))
-    pdf_file = db.Column(VARCHAR(255))  # Changed from pdf_file_path
-    publication_year = db.Column(db.Integer)  # Added this field
+    pdf_file = db.Column(VARCHAR(255))
+    publication_year = db.Column(db.Integer)
     publisher_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True)
-    total_copies = db.Column(db.Integer, nullable=False, default=1)  # Added this field
+    total_copies = db.Column(db.Integer, nullable=False, default=1)
     available_copies = db.Column(db.Integer, nullable=False, default=1)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    isbn = db.Column(db.String(20), unique=True, nullable=True)
-    genre = db.Column(db.String(100))
-    book_type = db.Column(db.String(20), default="Physical")
-    publication_year = db.Column(db.Integer)
-    total_copies = db.Column(db.Integer, default=1)
 
     # Relationships
     borrowings = db.relationship("Borrowing", backref="book", lazy=True)

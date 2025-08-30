@@ -1,37 +1,52 @@
 {% extends "base.html" %}
 
-{% block title %}Login - Library Management System{% endblock %}
+{% block title %}Login - KitabGhar{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h4 class="mb-0">
-                    <i class="fas fa-sign-in-alt"></i> Login to Your Account
-                </h4>
-            </div>
-            <div class="card-body">
-                <form method="POST" action="{{ url_for('login') }}">
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email Address</label>
-                        <input type="email" class="form-control" id="email" name="email" required>
+{# This block is intentionally left empty to allow the new layout to take full screen width #}
+{% endblock %}
+
+{% block body_content %}
+<div class="login-page-wrapper">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-xl-10 col-lg-12 col-md-9">
+                <div class="login-card card o-hidden border-0 shadow-lg my-5">
+                    <div class="card-body p-0">
+                        <!-- Two-Panel Layout -->
+                        <div class="row">
+                            <div class="col-lg-6 d-none d-lg-block login-image-panel">
+                                <!-- Background image is set in CSS -->
+                                <div class="image-text">
+                                    <h2>Welcome Back to KitabGhar</h2>
+                                    <p>Your gateway to a world of knowledge and stories.</p>
+                                </div>
+                            </div>
+                            <div class="col-lg-6 login-form-panel">
+                                <div class="p-5">
+                                    <div class="text-center">
+                                        <h1 class="h4 text-gray-900 mb-4">Login to Your Account</h1>
+                                    </div>
+                                    <form method="POST" action="{{ url_for('main.login') }}">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <div class="mb-3">
+                                            <input type="email" class="form-control form-control-user" name="email" placeholder="Enter Email Address..." required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <input type="password" class="form-control form-control-user" name="password" placeholder="Password" required>
+                                        </div>
+                                        <button type="submit" class="btn btn-login-custom btn-user w-100">
+                                            Login
+                                        </button>
+                                    </form>
+                                    <hr>
+                                    <div class="text-center">
+                                        <a class="small" href="{{ url_for('main.register') }}">Don't have an account? Register!</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="password" name="password" required>
-                    </div>
-                    
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-sign-in-alt"></i> Login
-                        </button>
-                    </div>
-                </form>
-                
-                <div class="text-center mt-3">
-                    <p>Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
                 </div>
             </div>
         </div>

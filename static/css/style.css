@@ -1,9 +1,35 @@
 /* Custom styles for Library Management System */
 
-/* General styles */
+/* --- General & New Layout Styles --- */
 body {
-    background-color: #f8f9fa;
+    background-color: #5988b6;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding-top: 56px; /* Height of the fixed navbar */
+}
+
+.main-container {
+    display: block; /* Allows register/login pages to be full-width */
+}
+
+/* Re-apply flexbox only for pages with a sidebar */
+body:has(.sidebar) .main-container {
+    display: flex;
+    min-height: calc(100vh - 56px);
+}
+
+
+.sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    background-color: #6d97c0;
+    border-right: 1px solid #298c5f;
+    padding: 20px;
+}
+
+.content {
+    flex-grow: 1;
+    padding: 20px;
+    background-color: hwb(293 57% 36% / 0.893);
 }
 
 .card {
@@ -18,121 +44,275 @@ body {
     background-color: #f8f9fc;
 }
 
-/* Navigation */
-.navbar-brand {
-    font-weight: bold;
-    font-size: 1.5rem;
+/* --- Welcome Homepage Styles --- */
+.welcome-hero {
+    background: linear-gradient(rgba(130, 175, 47, 0.7), rgba(101, 181, 190, 0.7)), url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=1200&q=80');
+    background-size: cover;
+    background-position: center;
+    color: rgb(214, 199, 199);
+    padding: 8rem 0;
 }
 
-/* Search and filters */
-.search-header {
-    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+.feature-section {
+    background-color: #f8f9fa; /* Soft off-white/light gray */
+    padding: 3rem 0;
 }
 
-.search-wrapper {
-    position: relative;
+.feature-card {
+    padding: 2rem;
+    transition: transform 0.2s;
 }
 
-.search-icon {
-    position: absolute;
-    left: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #6e707e;
+.feature-card:hover {
+    transform: translateY(-10px);
 }
 
-.btn-clear {
-    position: absolute;
-    right: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
+
+/* --- Professional Register Page Styles (Updated) --- */
+.register-page-wrapper {
+    /* CORRECTED: Using a local image path */
+    background-image: linear-gradient(rgba(35, 45, 55, 0.85), rgba(35, 45, 55, 0.85)), url('../images/library-bg.png');
+    background-size: cover;
+    background-position: center;
+    min-height: calc(100vh - 56px);
+    display: flex;
+    align-items: center;
+    padding: 2rem 0;
+}
+
+.register-card {
+    background-color: rgba(255, 255, 255, 0.95);
+    padding: 2.5rem;
+    border-radius: 1rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.register-title {
+    color: #333;
+    font-weight: 700;
+}
+
+.register-card .form-control {
+    background-color: #c8c5d3;
+    padding: 0.75rem 1rem;
+    border: 1px solid #a0207e; /* Persistent border color */
+    transition: all 0.2s ease-in-out;
+}
+
+.register-card .form-control:focus {
+    background-color: #b5cece;
+    border-color: #895b2a;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(137, 91, 42, 0.3);
+}
+
+.btn-register {
+    background-color: #6a4f4b;
+    color: rgb(183, 137, 179);
     border: none;
-    color: #6e707e;
-    padding: 0;
+    padding: 0.8rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.2s;
 }
 
-/* Book cards */
-.book-card {
-    transition: transform 0.3s ease;
+.btn-register:hover {
+    background-color: #895b2a;
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
 
-.book-card:hover {
+
+/* --- Modern Login Page Styles --- */
+.login-container {
+    background: #2e548d;
+    padding: 2rem 0;
+}
+
+.login-image-panel {
+    background: url('https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=800&q=60') center center;
+    background-size: cover;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    padding: 2rem;
+}
+
+.login-image-panel .image-text {
+    position: relative;
+    z-index: 1;
+    color: rgb(116, 165, 26);
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.7);
+}
+
+.login-image-panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);
+}
+
+.login-form-panel {
+    background-color: #ffffff;
+}
+
+.form-control-user {
+    padding: 1.5rem 1rem;
+    border-radius: 10rem;
+}
+
+.btn-user {
+    padding: 0.75rem 1rem;
+    border-radius: 10rem;
+    font-weight: bold;
+}
+
+/* --- Admin Dashboard Styles --- */
+.admin-hero {
+    position: relative;
+    height: 400px;
+    background-image: url('https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&w=1740&q=80');
+    background-size: cover;
+    background-position: center;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-align: center;
+}
+
+.admin-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 0.5rem;
+}
+
+.hero-text {
+    position: relative;
+    z-index: 1;
+}
+
+.stat-card-admin {
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s ease-in-out;
+}
+
+.stat-card-admin:hover {
     transform: translateY(-5px);
 }
 
-.description-short, .description-full {
-    font-size: 0.9rem;
-    color: #6e707e;
+.card-icon-admin {
+    position: absolute;
+    right: 20px;
+    bottom: -10px;
+    font-size: 4rem;
+    opacity: 0.2;
 }
 
-/* Badges */
-.badge {
-    font-weight: 500;
+/* --- Book Card Display Styles --- */
+.book-card-display {
+    transition: all 0.2s ease-in-out;
+    border: 1px solid #e9ecef;
 }
 
-/* Progress bars */
-.progress {
-    background-color: #eaecf4;
+.book-card-display:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
-/* Forms */
-.form-control:focus, .form-select:focus {
-    border-color: #4e73df;
-    box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+.book-cover-img {
+    height: 300px;
+    object-fit: cover;
+    background-color: #f8f9fa;
 }
 
-/* Buttons */
-.btn {
-    border-radius: 0.35rem;
-    font-weight: 500;
-}
-
-/* Tables */
-.table th {
-    border-top: none;
+.card-title {
     font-weight: 600;
-    color: #6e707e;
-    text-transform: uppercase;
-    font-size: 0.85rem;
 }
 
-/* Statistics cards */
-.card.bg-primary, .card.bg-success, .card.bg-info, .card.bg-warning {
-    border: none;
+.card-footer {
+    background-color: #3f6787;
+    border-top: 1px solid #489c84;
 }
 
-.card.bg-primary .card-footer, 
-.card.bg-success .card-footer, 
-.card.bg-info .card-footer, 
-.card.bg-warning .card-footer {
-    background: rgba(0, 0, 0, 0.1);
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
+/* --- Professional Login Page Styles (Consolidated) --- */
+.login-page-wrapper {
+    background-color: #37587a;
+    min-height: calc(100vh - 56px);
+    display: flex;
+    align-items: center;
+    padding: 2rem 0;
 }
 
-/* Alerts */
-.alert {
-    border: none;
-    border-radius: 0.35rem;
+.login-card {
+    border-radius: 1rem !important;
 }
 
-/* Pagination */
-.pagination .page-link {
-    color: #4e73df;
+.login-image-panel {
+    background: url('https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=800&q=60') center center;
+    background-size: cover;
+    position: relative;
+    display: flex;
+    /* This is the corrected line that moves the text to the top */
+    align-items: flex-start;
+    padding: 2.5rem;
+    border-top-left-radius: 1rem;
+    border-bottom-left-radius: 1rem;
 }
 
-.pagination .page-item.active .page-link {
-    background-color: #4e73df;
-    border-color: #4e73df;
+.login-image-panel .image-text {
+    position: relative;
+    z-index: 1;
+    color: white;
+    text-shadow: 1px 1px 4px rgba(0,0,0,0.8);
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .card-body {
-        padding: 1rem;
-    }
-    
-    .display-4 {
-        font-size: 2.5rem;
-    }
+.login-image-panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
+    border-top-left-radius: 1rem;
+    border-bottom-left-radius: 1rem;
 }
+
+.login-form-panel {
+    background-color: #9cadb1;
+    border-top-right-radius: 1rem;
+    border-bottom-right-radius: 1rem;
+}
+
+.form-control-user {
+    padding: 1.25rem 1rem;
+    border-radius: 10rem;
+    border: 1px solid #d1d3e2;
+}
+
+.btn-user {
+    padding: 0.75rem 1rem;
+    border-radius: 10rem;
+}
+
+.btn-login-custom {
+    background-color: #0d6efd;
+    color: white;
+    font-weight: bold;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.btn-login-custom:hover {
+    background-color: #0a58ca;
+    color: white;
+}
+
