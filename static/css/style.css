@@ -315,4 +315,7 @@ body:has(.sidebar) .main-container {
     background-color: #0a58ca;
     color: white;
 }
+.book-description {
+    white-space: pre-line;
+}
 

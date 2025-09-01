@@ -32,7 +32,7 @@ def create_app():
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_recycle": 300, "pool_pre_ping": True}
 
     # File upload configuration
-    app.config["UPLOAD_FOLDER"] = os.path.join(app.root_path, "uploads")
+    app.config["UPLOAD_FOLDER"] = os.path.join(app.root_path, "static", "uploads")
     app.config["BOOK_COVER_FOLDER"] = os.path.join(app.config["UPLOAD_FOLDER"], "covers")
     app.config["BOOK_PDF_FOLDER"] = os.path.join(app.config["UPLOAD_FOLDER"], "pdfs")
     app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024  # 50 MB

@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}{{ book.title }} - KitabGhar{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <!-- Book Cover and Actions -->
+        <div class="col-md-4">
+            <img src="{{ url_for('static', filename='uploads/covers/' + book.cover_image if book.cover_image else 'images/default_cover.png') }}" class="img-fluid rounded shadow" alt="Cover of {{ book.title }}">
+            <div class="d-grid gap-2 mt-4">
+                {% if book.pdf_file %}
+                    <!-- ✅ READ ONLINE BUTTON -->
+                    <a href="{{ url_for('main.download_book', book_id=book.id, view='true') }}" target="_blank" class="btn btn-primary"><i class="fas fa-book-open"></i> Read Online</a>
+                    <!-- ✅ DOWNLOAD BUTTON -->
+                    <a href="{{ url_for('main.download_book', book_id=book.id) }}" class="btn btn-secondary"><i class="fas fa-download"></i> Download PDF</a>
+                {% else %}
+                    <button class="btn btn-secondary" disabled>No Digital File Available</button>
+                {% endif %}
+
+                <!-- ✅ ADD THIS NEW SECTION FOR BORROWING -->
+                <hr> <!-- Optional: adds a visual separator -->
+                {% if book.is_available %}
+                    <a href="{{ url_for('main.borrow_book', book_id=book.id) }}" class="btn btn-success">
+                        <i class="fas fa-hand-holding-heart"></i> Borrow This Book
+                    </a>
+                {% else %}
+                    <button class="btn btn-danger" disabled>
+                        <i class="fas fa-times-circle"></i> Out of Stock
+                    </button>
+                {% endif %}
+                <!-- ✅ END OF NEW SECTION -->
+            </div>
+        </div>
+
+        <!-- Book Information -->
+        <div class="col-md-8">
+            <h1>{{ book.title }}</h1>
+            <h4 class="text-muted">by {{ book.author }}</h4>
+            <p><strong>Publisher:</strong> {{ book.publisher.username if book.publisher else 'N/A' }}</p>
+            <p><strong>Genre:</strong> {{ book.genre }} | <strong>Category:</strong> {{ book.category }}</p>
+            <p><strong>Published:</strong> {{ book.publication_year }}</p>
+            <div class="average-rating mb-3">
+                <span class="h4">
+                    {{ '%.1f'|format(average_rating) }} <i class="fas fa-star text-warning"></i>
+                </span>
+                <span class="text-muted">({{ reviews|length }} reviews)</span>
+            </div>
+            <p class="book-description">{{ book.description }}</p>
+        </div>
+    </div>
+
+    <hr class="my-5">
+
+    <!-- Reviews and Rating Section -->
+    <div class="row">
+        <div class="col-md-7">
+            <h3>Community Reviews</h3>
+            {% if reviews %}
+                {% for review in reviews %}
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ review.user.username }}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">
+                            {% for i in range(1, 6) %}
+                                <i class="fas fa-star {% if i <= review.rating %}text-warning{% endif %}"></i>
+                            {% endfor %}
+                        </h6>
+                        <p class="card-text">{{ review.content }}</p>
+                        <small class="text-muted">Reviewed on {{ review.created_at.strftime('%B %d, %Y') }}</small>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p>Be the first to review this book!</p>
+            {% endif %}
+        </div>
+        <div class="col-md-5">
+            <h3><i class="fas fa-pencil-alt"></i> Write a Review</h3>
+            <div class="card bg-light">
+                <div class="card-body">
+                    <form action="{{ url_for('main.submit_review', book_id=book.id) }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="mb-3">
+                            <label for="rating" class="form-label">Your Rating</label>
+                            <select class="form-select" id="rating" name="rating" required>
+                                <option value="5">★★★★★ (Excellent)</option>
+                                <option value="4">★★★★☆ (Good)</option>
+                                <option value="3">★★★☆☆ (Average)</option>
+                                <option value="2">★★☆☆☆ (Fair)</option>
+                                <option value="1">★☆☆☆☆ (Poor)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="content" class="form-label">Your Review</label>
+                            <textarea class="form-control" id="content" name="content" rows="4" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-success">Submit Review</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
