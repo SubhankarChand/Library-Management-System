@@ -61,8 +61,8 @@ class Book(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relationships
-    borrowings = db.relationship("Borrowing", backref="book", lazy=True)
-    reviews = db.relationship("Review", backref="book", lazy=True)
+    borrowings = db.relationship("Borrowing", backref="book", lazy=True, cascade="all, delete-orphan")
+    reviews = db.relationship("Review", backref="book", lazy=True, cascade="all, delete-orphan")
 
     __table_args__ = (
         Index("ix_books_title", "title"),
