@@ -75,3 +75,10 @@ source venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
+ ```
+
+ ### ⚙️ Database Setup
+
+- Create a new database in MySQL (e.g., kitabghar_db).
+
+- Create a .env file in the root folder and configure:
