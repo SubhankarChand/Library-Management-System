@@ -82,3 +82,62 @@ pip install -r requirements.txt
 - Create a new database in MySQL (e.g., kitabghar_db).
 
 - Create a .env file in the root folder and configure:
+
+```bash
+# Flask session secret
+SESSION_SECRET="your-very-secure-secret-key"
+
+# Database connection string
+DATABASE_URL="mysql+pymysql://USER:PASSWORD@localhost:3306/kitabghar_db?charset=utf8mb4"
+
+# CSRF secret
+CSRF_SECRET="your-csrf-secret-key"
+ ```
+ ## Run migrations:
+
+```bash
+ flask db init       # (only first time)
+ flask db migrate -m "Initial migration"
+ flask db upgrade
+ ```
+ ## ▶️ Run Application
+```bash
+python app.py
+  ```
+- Your app will be available at: http://127.0.0.1:5000
+
+### 📂 Application Structure
+
+```bash
+/Library-Management-System
+│-- blueprints/         # Flask route blueprints (main, auth, etc.)
+│-- static/             # CSS, JS, images
+│   │-- css/
+│   │-- js/
+│   └-- images/
+│-- templates/          # Jinja2 HTML templates
+│-- migrations/         # Auto-generated migration scripts
+│-- .gitignore          # Ignored files/folders
+│-- app.py              # Main Flask app entry point
+│-- extensions.py       # Flask extensions (db, login, migrate)
+│-- models.py           # SQLAlchemy models
+│-- requirements.txt    # Dependencies
+└-- README.md           # Project documentation
+```
+### 🌟 Future Scope
+- User & publisher management panel for admins
+
+- Book recommendation engine (AI/ML integration)
+
+- Notifications for due dates & reminders
+
+### 🤝 Contributing
+- Contributions are welcome! Fork this repo, create a branch, and submit a pull request.
+
+### 📜 License
+- This project is licensed under the MIT License.
+
+### 👨‍💻 Author
+
+Developed by [Subhankar Chand](https://github.com/SubhankarChand/Library-Management-System)
+ 🚀
