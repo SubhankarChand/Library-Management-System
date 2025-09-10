@@ -6,8 +6,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from extensions import db
 from .auth import login_required, admin_required, publisher_required, get_current_user
-from models import User, Book, Category, Borrowing, Review
-
+from models import User, Book, Borrowing, Review
 main_bp = Blueprint("main", __name__)
 
 def allowed_file(filename, allowed_extensions):
@@ -408,4 +407,3 @@ def not_found_error(error):
 def internal_error(error):
     db.session.rollback()
     return render_template("500.html", current_user=get_current_user()), 500
-

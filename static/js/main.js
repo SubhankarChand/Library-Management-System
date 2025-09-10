@@ -1,3 +1,4 @@
+
 // JavaScript for Library Management System
 
 document.addEventListener('DOMContentLoaded', function() {

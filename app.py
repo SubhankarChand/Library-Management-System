@@ -53,7 +53,7 @@ def create_app():
     csrf = CSRFProtect()
     csrf.init_app(app)
 
-    # ✅ Register blueprints
+    # Register blueprints
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
 
