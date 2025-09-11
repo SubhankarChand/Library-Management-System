@@ -250,7 +250,10 @@ def add_book():
         db.session.commit()
         flash('Book added successfully!', 'success')
         return redirect(url_for('main.publisher_dashboard'))
-    return render_template('book_form.html', current_user=get_current_user())
+    
+    # Calculate the maximum year for the form
+    max_year = datetime.now().year + 1
+    return render_template('book_form.html', current_user=get_current_user(), max_year=max_year)
 
 @main_bp.route("/edit-book/<int:book_id>", methods=['GET', 'POST'])
 @publisher_required
@@ -407,3 +410,4 @@ def not_found_error(error):
 def internal_error(error):
     db.session.rollback()
     return render_template("500.html", current_user=get_current_user()), 500
+

@@ -16,36 +16,158 @@ body {
     gap: 20px; /* Space between sidebar and content */
 }
 
+/*
+==============================================================================
+==================== START: NEW HERO SLIDESHOW STYLES ========================
+==============================================================================
+*/
+
+.hero-slideshow-container {
+    position: relative;
+    width: 100%;
+    height: calc(100vh - 56px); /* Full viewport height minus navbar */
+    overflow: hidden; /* Hides parts of images that might overflow */
+    background-color: #333; /* Fallback background color */
+}
+
+.hero-slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    opacity: 0;
+    animation: imageFade 24s infinite; /* 24s total duration for the animation */
+}
+
+/* Animation timing for each of the 4 images */
+.hero-slide:nth-child(1) {
+    animation-delay: 0s;
+}
+.hero-slide:nth-child(2) {
+    animation-delay: 6s; /* Starts when the first image fades out */
+}
+.hero-slide:nth-child(3) {
+    animation-delay: 12s; /* Starts when the second image fades out */
+}
+.hero-slide:nth-child(4) {
+    animation-delay: 18s; /* Starts when the third image fades out */
+}
+
+/* The fading animation logic */
+@keyframes imageFade {
+    0% { opacity: 0; }
+    8.33% { opacity: 1; } /* Fade in for 2s (2/24) */
+    25% { opacity: 1; } /* Stay visible for 4s (4/24) */
+    33.33% { opacity: 0; } /* Fade out for 2s (2/24) */
+    100% { opacity: 0; }
+}
+
+
+.hero-content {
+    position: relative;
+    z-index: 2; /* Ensures text is on top of the images */
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: white;
+    padding: 2rem;
+    background: rgba(0, 0, 0, 0.5); /* Dark overlay for better text readability */
+}
+
+/*====================== END: NEW HERO SLIDESHOW STYLES ======================*/
+
+
 /* Sidebar for filters */
 .sidebar {
     width: 280px;
     flex-shrink: 0;
-    background-color: #ffffff;
-    border: 1px solid #6d88a5;
-    border-radius: 8px;
+    background: linear-gradient(135deg, #bbf3e9, #b3abe5); /* soft gradient */
+    border: 1px solid #b3a0eb;
+    border-radius: 16px;
     padding: 20px;
-    height: fit-content; /* Sidebar will only be as tall as its content */
-}
+    height: fit-content;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: all 0.3s ease-in-out;
 
-/* Main content area for book listings */
+    /* makes it sticky */
+    position: sticky;
+    top: 90px;
+    align-self: flex-start;
+}
 .content {
     flex-grow: 1;
 }
 
-.card {
-    border: 1px solid #82bda0;
-    border-radius: 8px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-    margin-bottom: 1.5rem;
+.sidebar:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
 }
 
-.card-header {
-    border-bottom: 1px solid #e3e6f0;
-    background-color: #7487c0;
+/* Sidebar headings */
+.sidebar h5 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2a4d69;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #a7c7e7;
+    padding-bottom: 6px;
 }
 
+/* Filter checkboxes, radio, etc. */
+.sidebar label {
+    display: flex;
+    align-items: center;
+    font-size: 0.95rem;
+    color: #333;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: color 0.2s;
+}
 
-/* --- New Amazon-Style Book List Item --- */
+.sidebar input[type="checkbox"],
+.sidebar input[type="radio"] {
+    margin-right: 10px;
+    accent-color: #4a77d4; /* modern blue accent */
+}
+
+.sidebar label:hover {
+    color: #1e3a8a;
+}
+
+/* Reset / Apply buttons */
+.sidebar .btn {
+    width: 100%;
+    margin-top: 15px;
+    border-radius: 10px;
+    font-weight: 500;
+    transition: background 0.3s ease-in-out;
+}
+
+.sidebar .btn-primary {
+    background: linear-gradient(135deg, #4a77d4, #3753a3);
+    border: none;
+    color: #fff;
+}
+
+.sidebar .btn-primary:hover {
+    background: linear-gradient(135deg, #3753a3, #2a3d85);
+}
+
+.sidebar .btn-outline-secondary {
+    border: 1px solid #b0c4de;
+    color: #2a4d69;
+}
+
+.sidebar .btn-outline-secondary:hover {
+    background-color: #e6eef7;
+}
+
 .book-list-container {
     display: flex;
     flex-direction: column;
@@ -53,12 +175,12 @@ body {
 }
 
 .book-list-item {
-    background-color: #fff;
+    background-color: hwb(167 82% 12% / 0.986);
     transition: box-shadow 0.2s ease-in-out;
 }
 
 .book-list-item:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 12px rgba(78, 62, 112, 0.1);
 }
 
 .book-list-img {
@@ -82,8 +204,6 @@ body {
 ==============================================================================
 ======================= START: DESCRIPTION FORMATTING FIX ======================
 ==============================================================================
-This new rule tells the browser to preserve all line breaks and paragraphs
-from the text stored in your database.
 */
 .book-description {
     white-space: pre-line;
@@ -96,7 +216,7 @@ from the text stored in your database.
     background: linear-gradient(rgba(35, 45, 55, 0.7), rgba(35, 45, 55, 0.7)), url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=1200&q=80');
     background-size: cover;
     background-position: center;
-    color: rgb(173, 120, 120);
+    color: rgb(104, 225, 168);
     padding: 8rem 0;
 }
 
@@ -137,7 +257,7 @@ from the text stored in your database.
 
 /* --- Professional Login Page Styles --- */
 .login-page-wrapper {
-    background-color: #f0f2f5;
+    background-color: #abbad1;
     min-height: calc(100vh - 56px);
     display: flex;
     align-items: center;
@@ -161,8 +281,8 @@ from the text stored in your database.
 .login-image-panel .image-text {
     position: relative;
     z-index: 1;
-    color: white;
-    text-shadow: 1px 1px 4px rgba(0,0,0,0.8);
+    color: rgb(125, 101, 101);
+    text-shadow: 1px 1px 4px hsla(0, 100%, 0%, 0.925);
 }
 
 .login-image-panel::before {
@@ -173,6 +293,489 @@ from the text stored in your database.
 }
 
 .login-form-panel {
-    background-color: #ffffff;
+    background-color: #b2ced4;
 }
+
+/*
+==============================================================================
+=================== START: PROFESSIONAL BOOK FORM STYLES =====================
+==============================================================================
+*/
+
+.book-form-container .form-label {
+    font-weight: 500;
+    color: #495057;
+}
+
+.book-form-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.1);
+}
+
+.book-form-card .card-header {
+    background-color: #4a5568;
+    color: white;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+.book-form-card .form-control,
+.book-form-card .form-select {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.book-form-card .form-control:focus,
+.book-form-card .form-select:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.25rem rgba(0,123,255,.25);
+}
+
+.form-section-heading {
+    color: #4a5568;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+/*
+==============================================================================
+================== START: ENHANCED BOOK FORM STYLES ==========================
+==============================================================================
+*/
+
+.book-form-container {
+    padding: 4rem 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #ba77e6, #8aebac); /* Rich aqua gradient */
+    min-height: 100vh;
+}
+
+.book-form-card {
+    border: none;
+    border-radius: 18px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+    background: #521111;
+    max-width: 850px;
+    width: 100%;
+    overflow: hidden;
+    animation: fadeInUp 0.8s ease;
+}
+
+.book-form-card .card-header {
+    background: linear-gradient(135deg, #ff6a00, #ee0979);
+    color: rgb(243, 230, 230);
+    padding: 2rem;
+    text-align: center;
+}
+
+.book-form-card .card-header h4 {
+    font-weight: 800;
+    font-size: 1.8rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.book-form-card .card-body {
+    padding: 3rem;
+    background: #fdfdfd;
+}
+
+.book-form-card .form-section-heading {
+    color: #222;
+    font-weight: 700;
+    font-size: 1.3rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 3px solid #ff6a00;
+}
+
+.book-form-card .form-label {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.book-form-card .form-control,
+.book-form-card .form-select {
+    border-radius: 12px;
+    padding: 1rem 1.2rem;
+    border: 1px solid #ccc;
+    background-color: #f7f9fb;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+}
+
+.book-form-card .form-control:focus,
+.book-form-card .form-select:focus {
+    border-color: #ee0979;
+    background-color: #ffffff;
+    box-shadow: 0 0 12px rgba(238, 9, 121, 0.4);
+    transform: scale(1.02);
+}
+
+.book-form-card .form-control::placeholder {
+    color: #888;
+    font-size: 0.95rem;
+}
+
+.book-form-card .btn-primary {
+    font-weight: 700;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    background: linear-gradient(135deg, #ff6a00, #ee0979);
+    border: none;
+    color: #fff;
+}
+
+.book-form-card .btn-primary:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 8px 20px rgba(238, 9, 121, 0.4);
+}
+
+.book-form-card .btn-secondary {
+    font-weight: 600;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    background: #f0f2f5;
+    border: 1px solid #ddd;
+    color: #333;
+    transition: all 0.3s ease;
+}
+
+.book-form-card .btn-secondary:hover {
+    background: #e2e6eb;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(150, 160, 170, 0.3);
+}
+
+@keyframes fadeInUp {
+    0% { opacity: 0; transform: translateY(40px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+/* =================== END: ENHANCED BOOK FORM STYLES ========================= */
+
+/*
+==============================================================================
+==================== START: PROFESSIONAL LIBRARY UI ==========================
+==============================================================================
+*/
+
+/* --- Global Page Styling --- */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f6f9;
+    color: #343a40;
+    line-height: 1.6;
+}
+
+/* --- Sidebar Filter Panel --- */
+.filter-panel {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    margin-bottom: 2rem;
+}
+
+.filter-panel h5 {
+    font-weight: 600;
+    margin-bottom: 1.2rem;
+    color: #212529;
+}
+
+.filter-panel .form-label {
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: #495057;
+}
+
+.filter-panel .form-control,
+.filter-panel .form-select {
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    padding: 0.6rem 0.9rem;
+    transition: all 0.2s ease-in-out;
+}
+
+.filter-panel .form-control:focus,
+.filter-panel .form-select:focus {
+    border-color: #007bff;
+    background-color: #fff;
+    box-shadow: 0 0 0 0.15rem rgba(0, 123, 255, 0.15);
+}
+
+/* Apply Filter Button */
+.filter-panel .btn-apply {
+    font-weight: 600;
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
+    border: none;
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: #fff;
+    width: 100%;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.filter-panel .btn-apply:hover {
+    background: linear-gradient(135deg, #0069d9, #004085);
+    transform: translateY(-1px);
+}
+
+/* --- Book List Section --- */
+.page-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: #212529;
+}
+
+.book-card {
+    display: flex;
+    align-items: flex-start;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.book-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+.book-card img {
+    width: 70px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 6px;
+    margin-right: 1.25rem;
+    flex-shrink: 0;
+}
+
+.book-details h5 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+    color: #212529;
+}
+
+.book-details p {
+    margin: 0.3rem 0;
+    color: #495057;
+    font-size: 0.9rem;
+}
+
+/* Badges */
+.badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 6px;
+    padding: 0.35rem 0.6rem;
+    margin-right: 0.3rem;
+}
+
+.badge.bg-success-soft {
+    background-color: rgba(40, 167, 69, 0.15);
+    color: #28a745;
+}
+.badge.bg-info-soft {
+    background-color: rgba(23, 162, 184, 0.15);
+    color: #17a2b8;
+}
+.badge.bg-secondary-soft {
+    background-color: rgba(108, 117, 125, 0.15);
+    color: #6c757d;
+}
+
+/* Availability */
+.availability {
+    font-weight: 600;
+    color: #28a745;
+    display: flex;
+    align-items: center;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.availability i {
+    margin-right: 0.4rem;
+}
+
+/*
+===================== END: PROFESSIONAL LIBRARY UI ===========================
+*/
+
+/* --- Borrowing History Page Styles --- */
+.history-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #212529;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.history-card {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    border: none;
+    overflow: hidden;
+}
+
+.history-card .card-body {
+    padding: 2rem;
+}
+
+/* Table Styling */
+.history-table {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.history-table thead {
+    background: #007bff;
+    color: #fff;
+    font-weight: 600;
+}
+
+.history-table th {
+    padding: 1rem;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.history-table td {
+    vertical-align: middle;
+    padding: 0.9rem 1rem;
+    font-size: 0.92rem;
+}
+
+.history-table tbody tr {
+    transition: background 0.2s ease-in-out;
+}
+
+.history-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+/* Badges */
+.badge {
+    padding: 0.4rem 0.65rem;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+
+.badge-returned {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.badge-borrowed {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.badge-overdue {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* Return button */
+.history-table .btn-sm {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.8rem;
+    border-radius: 6px;
+}
+.history-book-cover {
+    width: 45px;
+    height: 65px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-right: 1rem;
+}
+
+/*
+==============================================================================
+==================== START: NEW BOOK CATALOG GRID STYLES =====================
+==============================================================================
+*/
+
+.page-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    color: #212529;
+}
+
+.book-grid-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    border: 1px solid #e0e0e0;
+    background-color: #fff;
+}
+
+.book-grid-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+.book-grid-img {
+    height: 350px; /* This makes the image much taller */
+    object-fit: cover;
+    background-color: #f8f9fa;
+}
+
+.book-grid-card .card-body {
+    padding: 1rem;
+}
+
+.book-grid-card .card-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #212529;
+}
+
+.book-grid-card .card-title a {
+    color: inherit; /* Inherits the title color */
+}
+
+.book-grid-card .card-title a:hover {
+    color: #007bff; /* Changes color on hover */
+}
+
+.book-grid-card .card-footer {
+    background-color: #f8f9fa;
+    border-top: 1px solid #e0e0e0;
+    padding: 0.75rem 1rem;
+}
+
+/* Soft-colored badges for availability status */
+.badge.bg-success-soft {
+    background-color: rgba(25, 135, 84, 0.1);
+    color: #198754 !important;
+}
+
+.badge.bg-danger-soft {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: #dc3545 !important;
+}
+
+/* ====================== END: NEW BOOK CATALOG GRID STYLES =================== */
 

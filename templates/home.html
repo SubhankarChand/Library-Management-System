@@ -3,45 +3,66 @@
 {% block title %}Welcome to KitabGhar{% endblock %}
 
 {% block content %}
-{# This block is intentionally left empty to remove the sidebar on the welcome page #}
-{% endblock %}
+<!-- ============================================================================== -->
+<!-- =================== START: NEW ANIMATED HERO SLIDESHOW ======================= -->
+<!-- ============================================================================== -->
+<div class="hero-slideshow-container">
+    <!-- Slideshow Images -->
+    <div class="hero-slide" style="background-image: url('https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&w=1950&q=80');"></div>
+    <div class="hero-slide" style="background-image: url('https://images.unsplash.com/photo-1481627834876-b7833e8f5570?auto=format&fit=crop&w=1950&q=80');"></div>
+    <div class="hero-slide" style="background-image: url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=1950&q=80');"></div>
+    <div class="hero-slide" style="background-image: url('https://images.unsplash.com/photo-1550399105-c4db5fb85c18?auto=format&fit=crop&w=1950&q=80');"></div>
 
-{% block body_content %}
-<div class="welcome-hero">
-    <div class="container text-center">
-        <h1 class="display-3">Discover Your Next Favorite Book</h1>
-        <p class="lead">KitabGhar is your personal online library. Borrow, read, and explore a vast collection of books from various genres.</p>
-        <a href="{{ url_for('main.register') }}" class="btn btn-primary btn-lg mt-3">Get Started for Free</a>
-        <a href="{{ url_for('main.login') }}" class="btn btn-outline-light btn-lg mt-3">Login</a>
+    <!-- Hero Content (Text and Buttons) -->
+    <div class="hero-content">
+        <h1 class="display-3 fw-bold">Discover Your Next Favorite Book</h1>
+        <p class="lead my-4">KitabGhar is your personal online library. Borrow, read, and explore a vast collection of books from various genres.</p>
+        <div>
+            <a href="{{ url_for('main.register') }}" class="btn btn-primary btn-lg me-2">Get Started for Free</a>
+            <a href="{{ url_for('main.login') }}" class="btn btn-outline-light btn-lg">Login</a>
+        </div>
     </div>
 </div>
+<!-- ======================== END: NEW ANIMATED HERO SLIDESHOW ====================== -->
 
-<div class="feature-section">
-    <div class="container py-5">
-        <h2 class="text-center mb-5">Why Choose KitabGhar?</h2>
-        <div class="row">
-            <div class="col-md-4 text-center">
-                <div class="feature-card">
+
+<!-- ============================================================================== -->
+<!-- ============== START: EXISTING CONTENT MOVED BELOW THE HERO ================== -->
+<!-- ============================================================================== -->
+<div class="container my-5">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold">Why Choose KitabGhar?</h2>
+        <p class="lead text-muted">Everything you need to dive into a world of stories.</p>
+    </div>
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="feature-card card h-100 text-center">
+                <div class="card-body">
                     <i class="fas fa-book-open fa-3x text-primary mb-3"></i>
-                    <h4>Vast Collection</h4>
-                    <p>Access thousands of titles across all your favorite genres.</p>
+                    <h5 class="card-title">Vast Collection</h5>
+                    <p class="card-text">Access thousands of books from different genres, including fiction, non-fiction, and educational materials.</p>
                 </div>
             </div>
-            <div class="col-md-4 text-center">
-                <div class="feature-card">
-                    <i class="fas fa-mobile-alt fa-3x text-primary mb-3"></i>
-                    <h4>Read Anywhere</h4>
-                    <p>Enjoy your books on any device, anytime, anywhere.</p>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-card card h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-laptop-house fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Read Anywhere</h5>
+                    <p class="card-text">Borrow and read your favorite books from the comfort of your home, on any device.</p>
                 </div>
             </div>
-            <div class="col-md-4 text-center">
-                <div class="feature-card">
+        </div>
+        <div class="col-md-4">
+            <div class="feature-card card h-100 text-center">
+                <div class="card-body">
                     <i class="fas fa-users fa-3x text-primary mb-3"></i>
-                    <h4>Community</h4>
-                    <p>Join a community of readers and share your thoughts.</p>
+                    <h5 class="card-title">Community Driven</h5>
+                    <p class="card-text">Join a community of readers, share reviews, and discover books recommended by others.</p>
                 </div>
             </div>
         </div>
     </div>
 </div>
+<!-- ========================== END: EXISTING CONTENT =========================== -->
 {% endblock %}

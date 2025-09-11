@@ -3,95 +3,110 @@
 {% block title %}Edit Book - KitabGhar{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-9">
-        <div class="card shadow-sm">
-            <div class="card-header bg-success text-white">
-                <h4 class="mb-0"><i class="fas fa-edit"></i> Edit Book Details</h4>
-            </div>
-            <div class="card-body p-4">
-                <form method="POST" action="{{ url_for('main.edit_book', book_id=book.id) }}" enctype="multipart/form-data">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="title" class="form-label">Title*</label>
-                            <input type="text" class="form-control" id="title" name="title" value="{{ book.title }}" required>
+<div class="container my-5 book-form-container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card book-form-card">
+                <div class="card-header">
+                    <h4 class="mb-0"><i class="fas fa-edit me-2"></i>Edit Book Details</h4>
+                </div>
+                <div class="card-body p-4 p-md-5">
+                    <form method="POST" action="{{ url_for('main.edit_book', book_id=book.id) }}" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <!-- Section 1: Core Book Details -->
+                        <h5 class="form-section-heading">Book Details</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="title" class="form-label">Title*</label>
+                                <input type="text" class="form-control" id="title" name="title" value="{{ book.title }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="author" class="form-label">Author*</label>
+                                <input type="text" class="form-control" id="author" name="author" value="{{ book.author }}" required>
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="author" class="form-label">Author*</label>
-                            <input type="text" class="form-control" id="author" name="author" value="{{ book.author }}" required>
-                        </div>
-                    </div>
 
-                    <div class="mb-3">
-                        <label for="description" class="form-label">Description</label>
-                        <textarea class="form-control" id="description" name="description" rows="4">{{ book.description or '' }}</textarea>
-                    </div>
+                        <div class="mb-4">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="5">{{ book.description or '' }}</textarea>
+                        </div>
 
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="category" class="form-label">Category*</label>
-                            <select class="form-select" id="category" name="category" required>
-                                <option value="">Select a Category</option>
-                                <optgroup label="Fiction">
-                                    {% for cat in ['Adventure', 'Classic', 'Fantasy', 'Historical Fiction', 'Horror', 'Mystery', 'Romance', 'Science Fiction', 'Thriller'] %}
-                                    <option value="{{ cat }}" {% if book.category == cat %}selected{% endif %}>{{ cat }}</option>
-                                    {% endfor %}
-                                </optgroup>
-                                <optgroup label="Non-Fiction">
-                                    {% for cat in ['Biography', 'Business', 'Computer Science', 'Education', 'Health', 'History', 'Law', 'Politics', 'Psychology', 'Science', 'Self-Help', 'Technology', 'Travel'] %}
-                                    <option value="{{ cat }}" {% if book.category == cat %}selected{% endif %}>{{ cat.replace('Biography', 'Biography & Autobiography').replace('Business', 'Business & Economics').replace('Politics', 'Politics & Government') }}</option>
-                                    {% endfor %}
-                                </optgroup>
-                            </select>
+                        <!-- Section 2: Classification -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="category" class="form-label">Category*</label>
+                                <select class="form-select" id="category" name="category" required>
+                                    <option value="" disabled>Select a Category</option>
+                                    <optgroup label="Fiction">
+                                        {% for cat in ['Adventure', 'Classic', 'Fantasy', 'Historical Fiction', 'Horror', 'Mystery', 'Romance', 'Science Fiction', 'Thriller'] %}
+                                        <option value="{{ cat }}" {% if book.category == cat %}selected{% endif %}>{{ cat }}</option>
+                                        {% endfor %}
+                                    </optgroup>
+                                    <optgroup label="Non-Fiction">
+                                        {% for cat in ['Biography', 'Business', 'Computer Science', 'Education', 'Health', 'History', 'Law', 'Politics', 'Psychology', 'Science', 'Self-Help', 'Technology', 'Travel'] %}
+                                        <option value="{{ cat }}" {% if book.category == cat %}selected{% endif %}>{{ cat }}</option>
+                                        {% endfor %}
+                                    </optgroup>
+                                    <optgroup label="Poetry">
+                                        <option value="English Poetry" {% if book.category == 'English Poetry' %}selected{% endif %}>English Poetry</option>
+                                        <option value="Bengali Poetry" {% if book.category == 'Bengali Poetry' %}selected{% endif %}>Bengali Poetry</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <label for="genre" class="form-label">Genre</label>
+                                <input type="text" class="form-control" id="genre" name="genre" value="{{ book.genre or '' }}" placeholder="e.g., Young Adult, Dystopian">
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="genre" class="form-label">Genre</label>
-                            <input type="text" class="form-control" id="genre" name="genre" value="{{ book.genre or '' }}">
-                        </div>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <label for="total_copies" class="form-label">Total Copies*</label>
-                            <input type="number" class="form-control" id="total_copies" name="total_copies" min="1" value="{{ book.total_copies }}" required>
-                        </div>
-                         <div class="col-md-4 mb-3">
-                            <label for="publication_year" class="form-label">Publication Year</label>
-                            <input type="number" class="form-control" id="publication_year" name="publication_year" min="1000" max="2025" value="{{ book.publication_year or '' }}">
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="isbn" class="form-label">ISBN</label>
-                            <input type="text" class="form-control" id="isbn" name="isbn" value="{{ book.isbn or '' }}">
-                        </div>
-                    </div>
 
-                    <hr>
-                    <h5 class="mb-3">Update Files</h5>
+                        <!-- Section 3: Publication Info -->
+                        <div class="row">
+                             <div class="col-md-4 mb-3">
+                                <label for="publication_year" class="form-label">Publication Year</label>
+                                <input type="number" class="form-control" id="publication_year" name="publication_year" min="1000" max="{{ max_year }}" value="{{ book.publication_year or '' }}">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="isbn" class="form-label">ISBN</label>
+                                <input type="text" class="form-control" id="isbn" name="isbn" value="{{ book.isbn or '' }}">
+                            </div>
+                             <div class="col-md-4 mb-4">
+                                <label for="total_copies" class="form-label">Total Copies*</label>
+                                <input type="number" class="form-control" id="total_copies" name="total_copies" min="1" value="{{ book.total_copies }}" required>
+                            </div>
+                        </div>
 
-                    <div class="mb-3">
-                        <label for="cover_image" class="form-label">Upload New Cover Image (Optional)</label>
-                        {% if book.cover_image %}
-                        <p class="small text-muted">Current cover: {{ book.cover_image }}</p>
-                        {% endif %}
-                        <input class="form-control" type="file" id="cover_image" name="cover_image">
-                    </div>
-                    <div class="mb-3">
-                        <label for="pdf_file" class="form-label">Upload New Book PDF (Optional)</label>
-                        {% if book.pdf_file %}
-                        <p class="small text-muted">Current PDF: {{ book.pdf_file }}</p>
-                        {% endif %}
-                        <input class="form-control" type="file" id="pdf_file" name="pdf_file">
-                    </div>
-                    
-                    <div class="d-flex justify-content-end">
-                        <a href="{{ url_for('main.publisher_dashboard') }}" class="btn btn-secondary me-2">Cancel</a>
-                        <button type="submit" class="btn btn-success">Update Book</button>
-                    </div>
-                </form>
+                        <hr class="my-4">
+
+                        <!-- Section 4: File Uploads -->
+                        <h5 class="form-section-heading">Update Files</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="cover_image" class="form-label">Upload New Cover Image (Optional)</label>
+                                {% if book.cover_image %}
+                                <p class="small text-muted mb-1">Current: {{ book.cover_image }}</p>
+                                {% endif %}
+                                <input class="form-control" type="file" id="cover_image" name="cover_image">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="pdf_file" class="form-label">Upload New Book PDF (Optional)</label>
+                                {% if book.pdf_file %}
+                                <p class="small text-muted mb-1">Current: {{ book.pdf_file }}</p>
+                                {% endif %}
+                                <input class="form-control" type="file" id="pdf_file" name="pdf_file">
+                            </div>
+                        </div>
+                        
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-end mt-4">
+                            <a href="{{ url_for('main.publisher_dashboard') }}" class="btn btn-secondary me-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Update Book</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
+

@@ -5,20 +5,21 @@
 {% block content %}
 <div class="main-container">
     <!-- ============================================================================== -->
-    <!-- ======================== START: AMAZON-STYLE SIDEBAR ========================= -->
+    <!-- =========================== SIDEBAR WITH FILTERS ============================= -->
     <!-- ============================================================================== -->
     <aside class="sidebar">
-        <h4 class="mb-4">Filter Options</h4>
         <form method="GET" action="{{ url_for('main.index') }}">
-            <!-- Search by Title or Author -->
-            <div class="mb-4">
-                <label for="search" class="form-label fw-bold">Search Title/Author</label>
+            <h5><i class="fas fa-filter me-2"></i>Filter Options</h5>
+            
+            <!-- Search -->
+            <div class="mb-3">
+                <label for="search" class="form-label">Search Title/Author</label>
                 <input type="text" name="search" id="search" class="form-control" value="{{ search or '' }}" placeholder="e.g., Atomic Habits">
             </div>
 
-            <!-- Category Filter -->
-            <div class="mb-4">
-                <label for="category" class="form-label fw-bold">Category</label>
+            <!-- Category -->
+            <div class="mb-3">
+                <label for="category" class="form-label">Category</label>
                 <select name="category" id="category" class="form-select">
                     <option value="">All Categories</option>
                     {% for cat in categories %}
@@ -27,9 +28,9 @@
                 </select>
             </div>
 
-            <!-- Genre Filter -->
-            <div class="mb-4">
-                <label for="genre" class="form-label fw-bold">Genre</label>
+            <!-- Genre -->
+            <div class="mb-3">
+                <label for="genre" class="form-label">Genre</label>
                 <select name="genre" id="genre" class="form-select">
                     <option value="">All Genres</option>
                     {% for g in genres %}
@@ -38,72 +39,81 @@
                 </select>
             </div>
 
-            <!-- Status Filter -->
+            <!-- Availability -->
             <div class="mb-4">
-                <label for="status" class="form-label fw-bold">Availability</label>
+                <label for="status" class="form-label">Availability</label>
                 <select name="status" id="status" class="form-select">
                     <option value="">All</option>
                     <option value="available" {% if 'available' == selected_status %}selected{% endif %}>Available Only</option>
                 </select>
             </div>
 
-            <!-- Filter Button -->
-            <div class="d-grid">
-                <button type="submit" class="btn btn-primary"><i class="fas fa-filter me-2"></i>Apply Filters</button>
+            <!-- Buttons -->
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-check me-2"></i>Apply Filters</button>
+                <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary"><i class="fas fa-undo me-2"></i>Reset</a>
             </div>
         </form>
     </aside>
 
     <!-- ============================================================================== -->
-    <!-- =========================== START: MAIN BOOK LISTING ========================= -->
+    <!-- ========================== MAIN CONTENT (BOOK GRID) ========================== -->
     <!-- ============================================================================== -->
     <main class="content">
-        <h2 class="mb-4">Discover Your Next Read</h2>
+        <h2 class="page-title">Discover Your Next Read</h2>
 
         {% if books.items %}
-            <div class="book-list-container">
+            <!-- Book Grid Layout -->
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
                 {% for book in books.items %}
-                <div class="book-list-item card mb-3">
-                    <div class="row g-0">
-                        <!-- Book Cover Image -->
-                        <div class="col-md-2">
-                            <a href="{{ url_for('main.book_detail', book_id=book.id) }}">
-                                <img src="{{ url_for('static', filename='uploads/covers/' + book.cover_image if book.cover_image else 'images/default_cover.png') }}" class="img-fluid rounded-start book-list-img" alt="Cover of {{ book.title }}">
-                            </a>
+                <div class="col">
+                    <div class="card h-100 book-grid-card">
+                        <a href="{{ url_for('main.book_detail', book_id=book.id) }}">
+                            <img src="{{ url_for('static', filename='uploads/covers/' + book.cover_image if book.cover_image else 'images/default_cover.png') }}" class="card-img-top book-grid-img" alt="Cover of {{ book.title }}">
+                        </a>
+                        <div class="card-body">
+                            <h6 class="card-title">
+                                <a href="{{ url_for('main.book_detail', book_id=book.id) }}" class="text-decoration-none">
+                                    {{ book.title|truncate(50) }}
+                                </a>
+                            </h6>
+                            <p class="card-text small text-muted">by {{ book.author }}</p>
                         </div>
-                        <!-- Book Details -->
-                        <div class="col-md-10">
-                            <div class="card-body">
-                                <h5 class="card-title">
-                                    <a href="{{ url_for('main.book_detail', book_id=book.id) }}" class="text-decoration-none text-dark">
-                                        {{ book.title }}
-                                    </a>
-                                </h5>
-                                <p class="card-text text-muted mb-2">by {{ book.author }}</p>
-                                <p class="card-text small mb-3">
-                                    <span class="badge bg-secondary">{{ book.category }}</span>
-                                    <span class="badge bg-info text-dark">{{ book.genre }}</span>
-                                </p>
-                                <p class="card-text">{{ book.description|truncate(150) }}</p>
-
-                                <!-- ============================================================================== -->
-                                <!-- =========================== START: BUG FIX HERE ============================== -->
-                                <!-- ============================================================================== -->
-                                <!-- We now check book.available_copies > 0 instead of book.is_available -->
-                                {% if book.available_copies > 0 %}
-                                    <p class="mb-0 fw-bold text-success"><i class="fas fa-check-circle me-2"></i>Available</p>
-                                    <small class="text-muted">Copies left: {{ book.available_copies }}</small>
-                                {% else %}
-                                    <p class="mb-0 fw-bold text-danger"><i class="fas fa-times-circle me-2"></i>Out of Stock</p>
-                                {% endif %}
-                                <!-- ============================ END: BUG FIX HERE ============================= -->
-
-                            </div>
+                        <div class="card-footer">
+                            {% if book.available_copies > 0 %}
+                                <span class="badge bg-success-soft w-100">Available</span>
+                            {% else %}
+                                <span class="badge bg-danger-soft w-100">Out of Stock</span>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
                 {% endfor %}
             </div>
+
+            <!-- Pagination -->
+            {% if books.pages > 1 %}
+            <nav aria-label="Book pages" class="mt-5">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item {% if not books.has_prev %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('main.index', page=books.prev_num, **request.args) }}">Previous</a>
+                    </li>
+                    {% for page_num in books.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                        {% if page_num %}
+                            <li class="page-item {% if page_num == books.page %}active{% endif %}">
+                                <a class="page-link" href="{{ url_for('main.index', page=page_num, **request.args) }}">{{ page_num }}</a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        {% endif %}
+                    {% endfor %}
+                    <li class="page-item {% if not books.has_next %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('main.index', page=books.next_num, **request.args) }}">Next</a>
+                    </li>
+                </ul>
+            </nav>
+            {% endif %}
+
         {% else %}
             <!-- No Books Found Message -->
             <div class="text-center py-5 card">
@@ -117,29 +127,7 @@
                 </div>
             </div>
         {% endif %}
-
-        <!-- Pagination -->
-        {% if books.pages > 1 %}
-        <nav aria-label="Book pages" class="mt-4">
-            <ul class="pagination justify-content-center">
-                <li class="page-item {% if not books.has_prev %}disabled{% endif %}">
-                    <a class="page-link" href="{{ url_for('main.index', page=books.prev_num, **request.args) }}">Previous</a>
-                </li>
-                {% for page_num in books.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
-                    {% if page_num %}
-                        <li class="page-item {% if page_num == books.page %}active{% endif %}">
-                            <a class="page-link" href="{{ url_for('main.index', page=page_num, **request.args) }}">{{ page_num }}</a>
-                        </li>
-                    {% else %}
-                        <li class="page-item disabled"><span class="page-link">...</span></li>
-                    {% endif %}
-                {% endfor %}
-                <li class="page-item {% if not books.has_next %}disabled{% endif %}">
-                    <a class="page-link" href="{{ url_for('main.index', page=books.next_num, **request.args) }}">Next</a>
-                </li>
-            </ul>
-        </nav>
-        {% endif %}
     </main>
 </div>
 {% endblock %}
+
