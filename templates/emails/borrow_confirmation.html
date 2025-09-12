@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Borrowed Confirmation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eeeeee;
+        }
+        .header h1 {
+            margin: 0;
+            color: #0056b3;
+        }
+        .content {
+            padding: 20px 0;
+        }
+        .content p {
+            margin: 0 0 10px;
+        }
+        .book-details {
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-left: 4px solid #0056b3;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            font-size: 0.9em;
+            color: #777;
+            padding-top: 20px;
+            border-top: 1px solid #eeeeee;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>KitabGhar Library</h1>
+        </div>
+        <div class="content">
+            <p>Hello {{ user.username }},</p>
+            <p>This is a confirmation that you have successfully borrowed the following book:</p>
+            
+            <div class="book-details">
+                <p><strong>Title:</strong> {{ book.title }}</p>
+                <p><strong>Author:</strong> {{ book.author }}</p>
+                <p><strong>Borrowed On:</strong> {{ borrowing.borrowed_date.strftime('%d %B, %Y') }}</p>
+                <p><strong>Due Date:</strong> <strong>{{ borrowing.due_date.strftime('%d %B, %Y') }}</strong></p>
+            </div>
+
+            <p>Please make sure to return the book by the due date to avoid any late fees. We hope you enjoy your read!</p>
+            <p>Happy Reading!</p>
+            <p>The KitabGhar Team</p>
+        </div>
+        <div class="footer">
+            <p>&copy; {{ now.year }} KitabGhar. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
