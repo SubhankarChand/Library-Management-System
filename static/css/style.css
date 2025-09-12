@@ -777,5 +777,48 @@ body {
     color: #dc3545 !important;
 }
 
+
 /* ====================== END: NEW BOOK CATALOG GRID STYLES =================== */
 
+/* ======================= CUSTOM PAGINATION STYLES ======================= */
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.pagination .page-item {
+    margin: 0 3px;
+}
+
+.pagination .page-link {
+    border-radius: 8px;
+    padding: 0.5rem 0.9rem;
+    color: #343a40;
+    font-weight: 500;
+    border: 1px solid #dee2e6;
+    background-color: #fff;
+    transition: all 0.2s ease-in-out;
+}
+
+.pagination .page-link:hover {
+    background-color: #f0f2f5;
+    color: #007bff;
+    text-decoration: none;
+}
+
+.pagination .page-item.active .page-link {
+    background: linear-gradient(135deg, #4a77d4, #3753a3);
+    color: #fff;
+    border-color: #3753a3;
+}
+
+.pagination .page-item.disabled .page-link {
+    color: #6c757d;
+    pointer-events: none;
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+}
+/* ===================== END CUSTOM PAGINATION STYLES ===================== */

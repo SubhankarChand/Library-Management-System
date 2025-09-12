@@ -40,28 +40,48 @@ def index():
 
     if search_query:
         search_term = f"%{search_query}%"
-        query = query.filter(db.or_(Book.title.ilike(search_term), Book.author.ilike(search_term)))
+        query = query.filter(
+            db.or_(
+                Book.title.ilike(search_term),
+                Book.author.ilike(search_term)
+            )
+        )
     if selected_category:
-        query = query.filter_by(category=selected_category)
+        query = query.filter(Book.category == selected_category)
     if selected_genre:
-        query = query.filter_by(genre=selected_genre)
+        query = query.filter(Book.genre == selected_genre)
     if selected_book_type:
-        query = query.filter_by(book_type=selected_book_type)
+        query = query.filter(Book.book_type == selected_book_type)
     if selected_status == 'available':
         query = query.filter(Book.available_copies > 0)
 
-    books_pagination = query.order_by(Book.created_at.desc()).paginate(page=page, per_page=9, error_out=False)
+    # ==============================================================================
+    # ============================ START: PAGINATION FIX ===========================
+    # ==============================================================================
+    # Changed per_page from 9 to 8 to meet the user's requirement.
+    books_pagination = query.order_by(Book.created_at.desc()).paginate(
+        page=page, per_page=8, error_out=False
+    )
+    # ============================= END: PAGINATION FIX ============================
+
     categories = [cat[0] for cat in db.session.query(Book.category).distinct().all() if cat[0]]
     genres = [g[0] for g in db.session.query(Book.genre).distinct().all() if g[0]]
     book_types = [bt[0] for bt in db.session.query(Book.book_type).distinct().all() if bt[0]]
 
     return render_template(
         "index.html",
-        current_user=user, books=books_pagination, search=search_query,
-        categories=categories, genres=genres, book_types=book_types,
-        selected_category=selected_category, selected_genre=selected_genre,
-        selected_book_type=selected_book_type, selected_status=selected_status,
+        current_user=user,
+        books=books_pagination,
+        search=search_query,
+        categories=categories,
+        genres=genres,
+        book_types=book_types,
+        selected_category=selected_category,
+        selected_genre=selected_genre,
+        selected_book_type=selected_book_type,
+        selected_status=selected_status,
     )
+
 
 @main_bp.route("/register", methods=["GET", "POST"])
 def register():
