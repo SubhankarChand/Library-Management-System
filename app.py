@@ -3,7 +3,7 @@ from flask import Flask
 from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_wtf.csrf import CSRFProtect
 from dotenv import load_dotenv
-from extensions import db, migrate, mail
+from extensions import db, migrate, mail, admin
 from blueprints.auth import auth_bp
 from blueprints.main import main_bp
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -31,18 +31,23 @@ def create_app():
     app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
     app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
     app.config['MAIL_DEFAULT_SENDER'] = ('KitabGhar', os.environ.get('MAIL_USERNAME'))
+    
+    # ==============================================================================
+    # ========================== START: FLASK-ADMIN THEME ==========================
+    # ==============================================================================
+    # This line tells Flask-Admin to use a modern Bootstrap 4 theme
+    app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
+    # =========================== END: FLASK-ADMIN THEME ===========================
 
     # Other database settings
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_recycle": 300, "pool_pre_ping": True}
 
-    # ==============================================================================
-    # ======================== START: FILE UPLOAD CONFIG UPDATE ====================
-    # ==============================================================================
+    # File upload configuration
     app.config["UPLOAD_FOLDER"] = os.path.join(app.root_path, "static", "uploads")
     app.config["BOOK_COVER_FOLDER"] = os.path.join(app.config["UPLOAD_FOLDER"], "covers")
     app.config["BOOK_PDF_FOLDER"] = os.path.join(app.config["UPLOAD_FOLDER"], "pdfs")
-    app.config["AVATAR_FOLDER"] = os.path.join(app.config["UPLOAD_FOLDER"], "avatars") # New folder for avatars
+    app.config["AVATAR_FOLDER"] = os.path.join(app.config["UPLOAD_FOLDER"], "avatars")
     app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024
     
     app.config['ALLOWED_IMAGE_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
@@ -53,15 +58,15 @@ def create_app():
         app.config["UPLOAD_FOLDER"], 
         app.config["BOOK_COVER_FOLDER"], 
         app.config["BOOK_PDF_FOLDER"],
-        app.config["AVATAR_FOLDER"] # Ensure avatar folder is created
+        app.config["AVATAR_FOLDER"]
     ]:
         os.makedirs(p, exist_ok=True)
-    # ========================= END: FILE UPLOAD CONFIG UPDATE =====================
 
     # Initialize extensions
     db.init_app(app)
     migrate.init_app(app, db)
     mail.init_app(app)
+    admin.init_app(app) # Initialize Flask-Admin
     
     # Initialize CSRF protection
     csrf = CSRFProtect()
@@ -85,6 +90,9 @@ def create_app():
 
 # Run the app
 app = create_app()
+
+# This is a new import for the admin setup
+import admin as admin_setup
 
 if __name__ == "__main__":
     app.run(debug=True, use_reloader=False)

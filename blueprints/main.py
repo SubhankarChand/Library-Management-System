@@ -28,7 +28,6 @@ def send_async_email(app, msg):
     with app.app_context():
         mail.send(msg)
 
-# ... (existing email functions: send_new_book_notification, etc.) ...
 def send_new_book_notification(app, book, publisher):
     """Sends an email to all registered users about a new book."""
     with app.app_context():
@@ -37,7 +36,6 @@ def send_new_book_notification(app, book, publisher):
         recipients = [user.email for user in users]
         if not recipients:
             return 
-            
         msg = Message(
             subject=f"New Book Alert: {book.title}",
             recipients=recipients
@@ -115,12 +113,10 @@ def send_return_confirmation_email(app, user, book, borrowing):
     )
     thr = Thread(target=send_async_email, args=[app, msg])
     thr.start()
-
-
 #==============================================================================
 # CORE & AUTHENTICATION ROUTES
 #==============================================================================
-# ... (existing routes: index, register, login, logout) ...
+
 @main_bp.route("/")
 def index():
     user = get_current_user()
@@ -293,7 +289,6 @@ def profile():
 #==============================================================================
 # DASHBOARD & ADMIN ROUTES
 #==============================================================================
-# ... (existing routes: user_dashboard, admin_dashboard, etc.) ...
 @main_bp.route("/user/dashboard")
 @login_required
 def user_dashboard():
@@ -349,10 +344,10 @@ def delete_user(user_id):
         flash(f"Error deleting user: {e}", "danger")
     return redirect(url_for('main.manage_users'))
 
+
 #==============================================================================
 # BOOK MANAGEMENT ROUTES
 #==============================================================================
-# ... (existing routes: add_book, edit_book, etc.) ...
 @main_bp.route("/add-book", methods=['GET', 'POST'])
 @publisher_required
 def add_book():
@@ -434,7 +429,7 @@ def delete_book(book_id):
 #==============================================================================
 # USER ACTION ROUTES
 #==============================================================================
-# ... (existing routes: book_detail, review, download, history, borrow, return) ...
+
 @main_bp.route("/book/<int:book_id>")
 @login_required
 def book_detail(book_id):
@@ -489,10 +484,7 @@ def download_book(book_id):
 @login_required
 def borrowing_history():
     user = get_current_user()
-    query = Borrowing.query
-    if user.role != 'admin':
-        query = query.filter_by(user_id=user.id)
-    borrowed_books = query.order_by(Borrowing.borrowed_date.desc()).all()
+    borrowed_books = Borrowing.query.filter_by(user_id=user.id).order_by(Borrowing.borrowed_date.desc()).all()
     return render_template("borrowing_history.html", current_user=user, borrowed_books=borrowed_books, now=datetime.utcnow())
 
 @main_bp.route("/borrow/<int:book_id>")

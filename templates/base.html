@@ -12,7 +12,13 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{{ url_for('main.index') }}"><i class="fas fa-book-open"></i> KitabGhar</a>
+            <!-- This link is now dynamic: Admins go to their dashboard, others go to the index -->
+            {% if current_user and current_user.role == 'admin' %}
+                <a class="navbar-brand" href="{{ url_for('main.admin_dashboard') }}"><i class="fas fa-book-open"></i> KitabGhar</a>
+            {% else %}
+                <a class="navbar-brand" href="{{ url_for('main.index') }}"><i class="fas fa-book-open"></i> KitabGhar</a>
+            {% endif %}
+
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -25,13 +31,20 @@
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a class="dropdown-item" href="{{ url_for('main.profile') }}">My Profile</a></li>
+                                
                                 {% if current_user.role == 'user' %}
                                     <li><a class="dropdown-item" href="{{ url_for('main.user_dashboard') }}">Dashboard</a></li>
+                                
                                 {% elif current_user.role == 'admin' %}
                                     <li><a class="dropdown-item" href="{{ url_for('main.admin_dashboard') }}">Dashboard</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('admin.index') }}">Control Panel</a></li>
+                                    <!-- New link for admins to view the public library catalog -->
+                                    <li><a class="dropdown-item" href="{{ url_for('main.index') }}"><i class="fas fa-book-reader me-2"></i>View Library</a></li>
+
                                 {% elif current_user.role == 'publisher' %}
                                     <li><a class="dropdown-item" href="{{ url_for('main.publisher_dashboard') }}">Dashboard</a></li>
                                 {% endif %}
+                                
                                 <li><a class="dropdown-item" href="{{ url_for('main.borrowing_history') }}">My History</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{{ url_for('main.logout') }}">Logout</a></li>
@@ -50,9 +63,9 @@
         </div>
     </nav>
 
-    <!-- This block allows child templates to control their own top-level layout -->
+    <!-- This new structure allows child templates to control their own layout -->
     {% block body_content %}
-        <!-- Default pages will use this centered wrapper -->
+        <!-- Default pages (like history, profile) will use this centered wrapper -->
         <div class="content-wrapper">
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
