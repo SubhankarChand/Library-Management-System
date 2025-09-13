@@ -28,6 +28,7 @@ def send_async_email(app, msg):
     with app.app_context():
         mail.send(msg)
 
+# ... (existing email functions: send_new_book_notification, etc.) ...
 def send_new_book_notification(app, book, publisher):
     """Sends an email to all registered users about a new book."""
     with app.app_context():
@@ -119,7 +120,7 @@ def send_return_confirmation_email(app, user, book, borrowing):
 #==============================================================================
 # CORE & AUTHENTICATION ROUTES
 #==============================================================================
-
+# ... (existing routes: index, register, login, logout) ...
 @main_bp.route("/")
 def index():
     user = get_current_user()
@@ -219,9 +220,80 @@ def logout():
     flash("You have been successfully logged out.", "info")
     return redirect(url_for("main.index"))
 
+# ==============================================================================
+# =========================== START: NEW PROFILE ROUTE =========================
+# ==============================================================================
+@main_bp.route('/profile', methods=['GET', 'POST'])
+@login_required
+def profile():
+    user = get_current_user()
+    if request.method == 'POST':
+        # Check which form was submitted using a hidden input field
+        form_type = request.form.get('form_type')
+
+        if form_type == 'profile':
+            # Handle profile details update
+            new_username = request.form.get('username')
+            dob_str = request.form.get('dob')
+            school_college = request.form.get('school_college')
+            
+            # Check for username change and uniqueness
+            if new_username != user.username:
+                if User.query.filter_by(username=new_username).first():
+                    flash('That username is already taken. Please choose another.', 'danger')
+                    return redirect(url_for('main.profile'))
+                user.username = new_username
+
+            if dob_str:
+                try:
+                    user.dob = datetime.strptime(dob_str, '%Y-%m-%d').date()
+                except ValueError:
+                    flash('Invalid date format for Date of Birth. Please use YYYY-MM-DD.', 'danger')
+                    return redirect(url_for('main.profile'))
+            else:
+                user.dob = None
+                
+            user.school_college = school_college
+            
+            # Handle profile picture upload
+            if 'profile_picture' in request.files:
+                file = request.files['profile_picture']
+                if file.filename != '' and allowed_file(file.filename, current_app.config['ALLOWED_IMAGE_EXTENSIONS']):
+                    # Create a unique filename to prevent overwrites
+                    filename = secure_filename(f"{user.id}_{datetime.now().strftime('%Y%m%d%H%M%S')}_{file.filename}")
+                    file.save(os.path.join(current_app.config['AVATAR_FOLDER'], filename))
+                    user.profile_picture = filename
+
+            db.session.commit()
+            flash('Your profile has been updated successfully.', 'success')
+
+        elif form_type == 'password':
+            # Handle password change
+            current_password = request.form.get('current_password')
+            new_password = request.form.get('new_password')
+            confirm_password = request.form.get('confirm_password')
+
+            if not check_password_hash(user.password_hash, current_password):
+                flash('Your current password is not correct.', 'danger')
+            elif len(new_password) < 8:
+                flash('New password must be at least 8 characters long.', 'danger')
+            elif new_password != confirm_password:
+                flash('New passwords do not match.', 'danger')
+            else:
+                user.password_hash = generate_password_hash(new_password)
+                db.session.commit()
+                flash('Your password has been updated successfully.', 'success')
+
+        return redirect(url_for('main.profile'))
+        
+    return render_template('profile.html', user=user, current_user=user)
+# ============================ END: NEW PROFILE ROUTE ==========================
+
+
 #==============================================================================
 # DASHBOARD & ADMIN ROUTES
 #==============================================================================
+# ... (existing routes: user_dashboard, admin_dashboard, etc.) ...
 @main_bp.route("/user/dashboard")
 @login_required
 def user_dashboard():
@@ -277,11 +349,10 @@ def delete_user(user_id):
         flash(f"Error deleting user: {e}", "danger")
     return redirect(url_for('main.manage_users'))
 
-
 #==============================================================================
 # BOOK MANAGEMENT ROUTES
 #==============================================================================
-
+# ... (existing routes: add_book, edit_book, etc.) ...
 @main_bp.route("/add-book", methods=['GET', 'POST'])
 @publisher_required
 def add_book():
@@ -360,11 +431,10 @@ def delete_book(book_id):
     flash(f"Book '{book.title}' has been successfully deleted.", "success")
     return redirect(url_for('main.publisher_dashboard'))
 
-
 #==============================================================================
 # USER ACTION ROUTES
 #==============================================================================
-
+# ... (existing routes: book_detail, review, download, history, borrow, return) ...
 @main_bp.route("/book/<int:book_id>")
 @login_required
 def book_detail(book_id):
@@ -465,7 +535,6 @@ def return_book(borrow_id):
     else:
         flash("This book has already been returned.", "info")
     return redirect(url_for('main.borrowing_history'))
-
 
 #==============================================================================
 # ERROR HANDLERS

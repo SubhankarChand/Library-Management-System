@@ -36,19 +36,27 @@ def create_app():
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_recycle": 300, "pool_pre_ping": True}
 
-    # File upload configuration
+    # ==============================================================================
+    # ======================== START: FILE UPLOAD CONFIG UPDATE ====================
+    # ==============================================================================
     app.config["UPLOAD_FOLDER"] = os.path.join(app.root_path, "static", "uploads")
     app.config["BOOK_COVER_FOLDER"] = os.path.join(app.config["UPLOAD_FOLDER"], "covers")
     app.config["BOOK_PDF_FOLDER"] = os.path.join(app.config["UPLOAD_FOLDER"], "pdfs")
-    app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024  # 50 MB
+    app.config["AVATAR_FOLDER"] = os.path.join(app.config["UPLOAD_FOLDER"], "avatars") # New folder for avatars
+    app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024
     
-    # Allowed file extensions
     app.config['ALLOWED_IMAGE_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
     app.config['ALLOWED_PDF_EXTENSIONS'] = {'pdf'}
 
-    # Create upload directories
-    for p in [app.config["UPLOAD_FOLDER"], app.config["BOOK_COVER_FOLDER"], app.config["BOOK_PDF_FOLDER"]]:
+    # Create all upload directories if they don't exist
+    for p in [
+        app.config["UPLOAD_FOLDER"], 
+        app.config["BOOK_COVER_FOLDER"], 
+        app.config["BOOK_PDF_FOLDER"],
+        app.config["AVATAR_FOLDER"] # Ensure avatar folder is created
+    ]:
         os.makedirs(p, exist_ok=True)
+    # ========================= END: FILE UPLOAD CONFIG UPDATE =====================
 
     # Initialize extensions
     db.init_app(app)
@@ -63,13 +71,7 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
 
-    # ==============================================================================
-    # ============================ START: FIX FOR IMPORT ERROR =====================
-    # ==============================================================================
-    # By importing the function and setting up the scheduler inside the app factory,
-    # we avoid the circular import error.
     from blueprints.main import send_due_date_reminders
-
     scheduler = BackgroundScheduler(daemon=True)
     scheduler.add_job(
         lambda: send_due_date_reminders(app), 
@@ -78,7 +80,6 @@ def create_app():
         minute=0
     )
     scheduler.start()
-    # ============================= END: FIX FOR IMPORT ERROR ======================
 
     return app
 

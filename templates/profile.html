@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile - KitabGhar{% endblock %}
+
+{% block content %}
+<div class="content-wrapper">
+    <div class="container profile-container my-4">
+        <div class="card profile-card">
+            <div class="card-body p-4 p-md-5">
+
+                <!-- Profile Header -->
+                <div class="profile-header d-flex align-items-center mb-4">
+                    <img src="{{ url_for('static', filename='uploads/avatars/' + current_user.profile_picture if current_user.profile_picture else 'https://placehold.co/120x120/EBF8FF/3182CE?text=' + current_user.username[0]) }}"
+                         class="profile-avatar me-4"
+                         alt="User Avatar">
+                    <div>
+                        <h3 class="mb-1">{{ current_user.username }}</h3>
+                        <p class="text-muted mb-0">{{ current_user.email }}</p>
+                    </div>
+                </div>
+
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <!-- Tabs -->
+                <ul class="nav nav-tabs profile-tabs mb-4" id="profileTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="details-tab" data-bs-toggle="tab" data-bs-target="#details" type="button" role="tab">
+                            Profile Details
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="password-tab" data-bs-toggle="tab" data-bs-target="#password" type="button" role="tab">
+                            Change Password
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="profileTabsContent">
+                    <!-- Profile Details Tab -->
+                    <div class="tab-pane fade show active" id="details" role="tabpanel">
+                        <form action="{{ url_for('main.profile') }}" method="POST" enctype="multipart/form-data">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="form_type" value="profile">
+
+                            <h5 class="form-section">Personal Information</h5>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="username" class="form-label">Username</label>
+                                    <input type="text" id="username" name="username" class="form-control" value="{{ current_user.username }}" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="email" class="form-label">Email Address</label>
+                                    <input type="email" id="email" class="form-control" value="{{ current_user.email }}" disabled>
+                                    <small class="form-text text-muted">Email cannot be changed.</small>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="dob" class="form-label">Date of Birth</label>
+                                    <input type="date" id="dob" name="dob" class="form-control" value="{{ current_user.dob.strftime('%Y-%m-%d') if current_user.dob else '' }}">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="school_college" class="form-label">School / College</label>
+                                    <input type="text" id="school_college" name="school_college" class="form-control" value="{{ current_user.school_college or '' }}">
+                                </div>
+                            </div>
+
+                            <h5 class="form-section mt-4">Update Profile Picture</h5>
+                            <div class="mb-3">
+                                <label for="profile_picture" class="form-label">Upload New Image</label>
+                                <input type="file" id="profile_picture" name="profile_picture" class="form-control">
+                            </div>
+
+                            <div class="d-flex justify-content-end mt-4">
+                                <button type="submit" class="btn btn-primary px-4">Save Changes</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Change Password Tab -->
+                    <div class="tab-pane fade" id="password" role="tabpanel">
+                        <form action="{{ url_for('main.profile') }}" method="POST">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="form_type" value="password">
+
+                            <h5 class="form-section">Change Your Password</h5>
+                            <div class="mb-3">
+                                <label for="current_password" class="form-label">Current Password</label>
+                                <input type="password" id="current_password" name="current_password" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="new_password" class="form-label">New Password</label>
+                                <input type="password" id="new_password" name="new_password" class="form-control" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="confirm_new_password" class="form-label">Confirm New Password</label>
+                                <input type="password" id="confirm_new_password" name="confirm_new_password" class="form-control" required>
+                            </div>
+
+                            <div class="d-flex justify-content-end mt-4">
+                                <button type="submit" class="btn btn-primary px-4">Update Password</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

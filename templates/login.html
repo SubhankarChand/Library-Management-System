@@ -2,13 +2,33 @@
 
 {% block title %}Login - KitabGhar{% endblock %}
 
-{% block content %}
-{# This block is intentionally left empty to allow the new layout to take full screen width #}
-{% endblock %}
+{# We leave the main 'content' block empty on purpose for this page #}
+{% block content %}{% endblock %}
 
+<!-- ============================================================================== -->
+<!-- ============================= START: TEMPLATE FIX ============================ -->
+<!-- ============================================================================== -->
+<!-- This page's content goes into the new 'body_content' block, which allows it
+     to bypass the default centered container and take up the full screen. -->
 {% block body_content %}
 <div class="login-page-wrapper">
     <div class="container">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="row justify-content-center">
+                    <div class="col-xl-10 col-lg-12 col-md-9">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        {% endwith %}
+
         <div class="row justify-content-center">
             <div class="col-xl-10 col-lg-12 col-md-9">
                 <div class="login-card card o-hidden border-0 shadow-lg my-5">
@@ -53,3 +73,4 @@
     </div>
 </div>
 {% endblock %}
+<!-- ============================== END: TEMPLATE FIX ============================= -->

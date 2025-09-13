@@ -11,8 +11,16 @@ class User(db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
-    role = db.Column(db.String(20), nullable=False, default='user') # Can be 'user', 'publisher', or 'admin'
+    role = db.Column(db.String(20), nullable=False, default='user')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # ==============================================================================
+    # ========================== START: NEW PROFILE FIELDS =========================
+    # ==============================================================================
+    profile_picture = db.Column(db.String(255), nullable=True, default='default.png')
+    dob = db.Column(db.Date, nullable=True)
+    school_college = db.Column(db.String(200), nullable=True)
+    # =========================== END: NEW PROFILE FIELDS ==========================
     
     # Relationships
     books = db.relationship('Book', back_populates='publisher', lazy=True, cascade="all, delete-orphan")
@@ -74,6 +82,3 @@ class Review(db.Model):
     # Relationships
     user = db.relationship('User', back_populates='reviews')
     book = db.relationship('Book', back_populates='reviews')
-
-# Note: There is no 'Category' model as the original code queries distinct values directly from the 'Book' table.
-# If you wanted a separate table for categories, you would define it here.

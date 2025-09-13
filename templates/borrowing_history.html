@@ -3,75 +3,88 @@
 {% block title %}Borrowing History - KitabGhar{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-10">
-            <div class="card history-card">
-                <div class="card-body">
-                    <h2 class="history-title">
-                        <i class="fas fa-history me-2"></i>Your Borrowing History
-                    </h2>
+<div class="row justify-content-center">
+    <div class="col-lg-12">
+        <div class="card history-card">
+            <div class="card-body">
+                <h2 class="history-title">
+                    <i class="fas fa-history me-2"></i>Your Borrowing History
+                </h2>
 
-                    {% if borrowed_books %}
-                    <div class="table-responsive">
-                        <table class="table history-table align-middle">
-                            <thead>
-                                <tr>
-                                    <th>Book</th>
-                                    <th>Borrowed</th>
-                                    <th>Due</th>
-                                    <th>Returned</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for borrow in borrowed_books %}
-                                <tr>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <img src="{{ url_for('static', filename='uploads/covers/' + borrow.book.cover_image if borrow.book.cover_image else 'images/default_cover.png') }}" alt="Cover" class="history-book-cover">
-                                            <div>
-                                                <div class="fw-bold">{{ borrow.book.title }}</div>
-                                                <div class="text-muted small">by {{ borrow.book.author }}</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>{{ borrow.borrowed_date.strftime('%b %d, %Y') }}</td>
-                                    <td>{{ borrow.due_date.strftime('%b %d, %Y') }}</td>
-                                    <td>{{ borrow.returned_date.strftime('%b %d, %Y') if borrow.returned_date else '-' }}</td>
-                                    <td>
-                                        {% if borrow.is_returned %}
-                                            <span class="badge badge-returned">Returned</span>
-                                        {% elif borrow.due_date < now %}
-                                            <span class="badge badge-overdue">Overdue</span>
-                                        {% else %}
-                                            <span class="badge badge-borrowed">Borrowed</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if not borrow.is_returned %}
-                                            <a href="{{ url_for('main.return_book', borrow_id=borrow.id) }}" class="btn btn-sm btn-outline-primary">Return</a>
-                                        {% else %}
-                                            <span>-</span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    {% else %}
-                    <div class="text-center py-5">
-                        <i class="fas fa-book-reader fa-3x text-muted mb-3"></i>
-                        <h5 class="text-muted">You have no borrowing history yet.</h5>
-                        <p>Borrowed books will appear here.</p>
-                        <a href="{{ url_for('main.index') }}" class="btn btn-primary mt-3">Browse Books</a>
-                    </div>
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
                     {% endif %}
+                {% endwith %}
+
+                {% if borrowed_books %}
+                <div class="table-responsive">
+                    <table class="table history-table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Book</th>
+                                <th>Borrowed</th>
+                                <th>Due</th>
+                                <th>Returned</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for borrow in borrowed_books %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="{{ url_for('static', filename='uploads/covers/' + borrow.book.cover_image if borrow.book.cover_image else 'images/default_cover.png') }}" alt="Cover" class="history-book-cover">
+                                        <div>
+                                            <div class="fw-bold">{{ borrow.book.title }}</div>
+                                            <div class="text-muted small">by {{ borrow.book.author }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ borrow.borrowed_date.strftime('%b %d, %Y') }}</td>
+                                <td>{{ borrow.due_date.strftime('%b %d, %Y') }}</td>
+                                <td>{{ borrow.returned_date.strftime('%b %d, %Y') if borrow.returned_date else '-' }}</td>
+                                <td>
+                                    {% if borrow.is_returned %}
+                                        <span class="badge badge-returned">Returned</span>
+                                    {% elif borrow.due_date < now %}
+                                        <span class="badge badge-overdue">Overdue</span>
+                                    {% else %}
+                                        <span class="badge badge-borrowed">Borrowed</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if not borrow.is_returned %}
+                                        <form action="{{ url_for('main.return_book', borrow_id=borrow.id) }}" method="POST" class="d-inline">
+                                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                             <button type="submit" class="btn btn-sm btn-outline-primary">Return</button>
+                                        </form>
+                                    {% else %}
+                                        <span>-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-book-reader fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">You have no borrowing history yet.</h5>
+                    <p>Borrowed books will appear here.</p>
+                    <a href="{{ url_for('main.index') }}" class="btn btn-primary mt-3">Browse Books</a>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
+

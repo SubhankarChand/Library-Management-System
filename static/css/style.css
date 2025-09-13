@@ -7,14 +7,24 @@ body {
     padding-top: 56px; /* Height of the fixed navbar */
 }
 
+/* This is a general container, but profile page will have its own */
 .main-container {
-    display: flex; /* Establishes the sidebar/content layout */
+    display: flex;
     width: 100%;
     max-width: 1500px; /* Max width for large screens */
     margin: 0 auto;
     padding: 20px;
     gap: 20px; /* Space between sidebar and content */
 }
+
+/* This is a wrapper for non-sidebar pages to center them */
+.content-wrapper {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
 
 /*
 ==============================================================================
@@ -822,3 +832,71 @@ body {
     border-color: #dee2e6;
 }
 /* ===================== END CUSTOM PAGINATION STYLES ===================== */
+
+/*
+==============================================================================
+==================== START: USER PROFILE PAGE STYLES (NEW) ===================
+==============================================================================
+*/
+
+.profile-container {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+}
+
+.profile-card {
+    border-radius: 1rem;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+    border: none;
+    background-color: #ffffff;
+    overflow: hidden;
+}
+
+.profile-header {
+    padding: 2rem;
+    text-align: center;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.profile-tabs {
+    border-bottom: 1px solid #dee2e6;
+}
+
+.profile-tabs .nav-link {
+    font-weight: 600;
+    color: #495057;
+    border-width: 0 0 3px 0;
+    border-color: transparent;
+    padding: 1rem 1.5rem;
+    transition: color 0.2s, border-color 0.2s;
+}
+
+.profile-tabs .nav-link:hover {
+    border-color: #dee2e6;
+}
+
+.profile-tabs .nav-link.active {
+    color: #0056b3;
+    border-color: #0056b3;
+    background-color: transparent;
+}
+
+.form-section {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: #343a40;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #e9ecef;
+}
+/*====================== END: USER PROFILE PAGE STYLES =======================*/
+

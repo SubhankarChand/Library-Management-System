@@ -2,22 +2,18 @@
 
 {% block title %}Book Catalog - KitabGhar{% endblock %}
 
-{% block content %}
+{% block body_content %}
+{# This page overrides the default wrapper to use the full-width .main-container for the sidebar layout #}
 <div class="main-container">
-    <!-- ============================================================================== -->
-    <!-- =========================== SIDEBAR WITH FILTERS ============================= -->
-    <!-- ============================================================================== -->
     <aside class="sidebar">
         <form method="GET" action="{{ url_for('main.index') }}">
             <h5><i class="fas fa-filter me-2"></i>Filter Options</h5>
             
-            <!-- Search -->
             <div class="mb-3">
                 <label for="search" class="form-label">Search Title/Author</label>
                 <input type="text" name="search" id="search" class="form-control" value="{{ search or '' }}" placeholder="e.g., Atomic Habits">
             </div>
 
-            <!-- Category -->
             <div class="mb-3">
                 <label for="category" class="form-label">Category</label>
                 <select name="category" id="category" class="form-select">
@@ -28,7 +24,6 @@
                 </select>
             </div>
 
-            <!-- Genre -->
             <div class="mb-3">
                 <label for="genre" class="form-label">Genre</label>
                 <select name="genre" id="genre" class="form-select">
@@ -39,7 +34,6 @@
                 </select>
             </div>
 
-            <!-- Availability -->
             <div class="mb-4">
                 <label for="status" class="form-label">Availability</label>
                 <select name="status" id="status" class="form-select">
@@ -48,7 +42,6 @@
                 </select>
             </div>
 
-            <!-- Buttons -->
             <div class="d-grid gap-2">
                 <button type="submit" class="btn btn-primary"><i class="fas fa-check me-2"></i>Apply Filters</button>
                 <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary"><i class="fas fa-undo me-2"></i>Reset</a>
@@ -56,14 +49,21 @@
         </form>
     </aside>
 
-    <!-- ============================================================================== -->
-    <!-- ========================== MAIN CONTENT (BOOK GRID) ========================== -->
-    <!-- ============================================================================== -->
     <main class="content">
         <h2 class="page-title">Discover Your Next Read</h2>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
 
         {% if books.items %}
-            <!-- Book Grid Layout -->
             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
                 {% for book in books.items %}
                 <div class="col">
@@ -91,13 +91,9 @@
                 {% endfor %}
             </div>
 
-            <!-- Pagination -->
             {% if books.pages > 1 %}
             <nav aria-label="Book pages" class="mt-5">
                 <ul class="pagination justify-content-center">
-                    <!-- ============================================================================== -->
-                    <!-- =========================== START: PAGINATION FIX ============================ -->
-                    <!-- ============================================================================== -->
                     <li class="page-item {% if not books.has_prev %}disabled{% endif %}">
                         <a class="page-link" href="{{ url_for('main.index', page=books.prev_num, search=search, category=selected_category, genre=selected_genre, status=selected_status) }}">Previous</a>
                     </li>
@@ -113,13 +109,11 @@
                     <li class="page-item {% if not books.has_next %}disabled{% endif %}">
                         <a class="page-link" href="{{ url_for('main.index', page=books.next_num, search=search, category=selected_category, genre=selected_genre, status=selected_status) }}">Next</a>
                     </li>
-                    <!-- ============================ END: PAGINATION FIX ============================= -->
                 </ul>
             </nav>
             {% endif %}
 
         {% else %}
-            <!-- No Books Found Message -->
             <div class="text-center py-5 card">
                 <div class="card-body">
                     <i class="fas fa-search fa-4x text-muted mb-3"></i>
