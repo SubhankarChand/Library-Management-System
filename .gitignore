@@ -1,0 +1,16 @@
+Environment variables
+.env
+
+Virtual Environment
+venv/
+*.pyc
+
+IDE / Editor specific files
+.idea/
+.vscode/
+
+Python cache
+pycache/
+
+Instance folder (for Flask)
+instance/
