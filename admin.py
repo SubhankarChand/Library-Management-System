@@ -1,6 +1,6 @@
+from flask import redirect, url_for
 from flask_admin.contrib.sqla import ModelView
 from flask_admin import AdminIndexView
-from flask import redirect, url_for
 from extensions import db, admin
 from models import User, Book, Borrowing, Review
 from blueprints.auth import get_current_user
@@ -27,11 +27,12 @@ class SecureAdminIndexView(AdminIndexView):
         return redirect(url_for('main.index'))
 
 # ==============================================================================
-# =============================== START: FIX ===================================
+# ======================== START: CORRECTED CONFIGURATION ======================
 # ==============================================================================
-# We add the name and url to ensure the link in the navbar works correctly.
-admin.index_view = SecureAdminIndexView(name="Dashboard", url="/admin")
-# ================================ END: FIX ==================================
+# We add the name and url to ensure the link in the navbar works correctly and
+# the main admin page has a proper title.
+admin.index_view = SecureAdminIndexView(name="Control Panel Home", url="/admin")
+# ========================= END: CORRECTED CONFIGURATION =======================
 
 # Add the secure model views to the admin panel
 # Now, you can manage Users, Books, etc., from the /admin URL

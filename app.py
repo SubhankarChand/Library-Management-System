@@ -35,7 +35,7 @@ def create_app():
     # ==============================================================================
     # ========================== START: FLASK-ADMIN THEME ==========================
     # ==============================================================================
-    # This line tells Flask-Admin to use a modern Bootstrap 4 theme
+    
     app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
     # =========================== END: FLASK-ADMIN THEME ===========================
 
@@ -66,7 +66,7 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
     mail.init_app(app)
-    admin.init_app(app) # Initialize Flask-Admin
+    admin.init_app(app)
     
     # Initialize CSRF protection
     csrf = CSRFProtect()
@@ -91,7 +91,7 @@ def create_app():
 # Run the app
 app = create_app()
 
-# This is a new import for the admin setup
+# Import the admin setup after the app is created to avoid circular imports
 import admin as admin_setup
 
 if __name__ == "__main__":

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% if admin_view.name %}{{ admin_view.name }} – {% endif %}KitabGhar Admin{% endblock %}</title>
+
+    {% block head_css %}
+    <!-- Modern Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('admin.static', filename='vendor/select2/select2.css') }}" rel="stylesheet">
+
+    <style>
+        /* ===== Global Colors ===== */
+        :root {
+            --primary-bg: #1E293B;      /* dark navy sidebar */
+            --primary-accent: #3B82F6;  /* vibrant blue accent */
+            --light-bg: #F8FAFC;        /* page background */
+            --card-bg: #FFFFFF;         /* card/content panels */
+            --text-color: #334155;      /* main text */
+        }
+
+        body {
+            background: var(--light-bg);
+            color: var(--text-color);
+            font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        /* ===== Sidebar ===== */
+        .sidebar {
+            min-height: 100vh;
+            background: var(--primary-bg);
+            padding: 1.5rem 1rem;
+        }
+        .sidebar .navbar-brand {
+            color: #fff;
+            font-weight: 600;
+            font-size: 1.3rem;
+            display: block;
+            margin-bottom: 2rem;
+            text-align: center;
+            text-decoration: none;
+        }
+        .sidebar .nav-link {
+            color: #cbd5e1;
+            border-radius: .5rem;
+            margin-bottom: .4rem;
+        }
+        .sidebar .nav-link.active,
+        .sidebar .nav-link:hover {
+            background: var(--primary-accent);
+            color: #fff;
+        }
+
+        /* ===== Content ===== */
+        .content-area {
+            padding: 2rem;
+        }
+        .alert {
+            border-radius: .5rem;
+        }
+    </style>
+    {% endblock %}
+</head>
+<body>
+{% block page_body %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <nav class="col-md-2 sidebar d-flex flex-column">
+            {% block brand %}
+            <a class="navbar-brand" href="{{ admin_view.get_url('.index') }}">
+                {{ admin_view.admin.name }}
+            </a>
+            {% endblock %}
+
+            {% block main_menu %}
+            <ul class="nav flex-column">
+                {{ layout.menu() }}
+            </ul>
+            {% endblock %}
+        </nav>
+
+        <!-- Main Content -->
+        <main class="col-md-10 content-area">
+            {% block messages %}
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, m in messages %}
+                        <div class="alert alert-{{ category }} shadow-sm">
+                            {{ m }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            {% endblock %}
+
+            {% set render_ctx = h.resolve_ctx() %}
+            {% block body %}{% endblock %}
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block tail_js %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('admin.static', filename='vendor/select2/select2.js') }}"></script>
+{% endblock %}
+</body>
+</html>
