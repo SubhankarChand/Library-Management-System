@@ -3,6 +3,8 @@ Flask-SQLAlchemy
 Flask-Migrate
 Flask-Mail
 Flask-WTF
+Flask-Admin
+apscheduler
 python-dotenv
 Werkzeug
 itsdangerous
