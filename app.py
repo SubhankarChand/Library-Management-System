@@ -19,7 +19,18 @@ def create_app():
     
     # Configuration from environment variables
     app.secret_key = os.environ.get("SESSION_SECRET")
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+    
+    # --- DATABASE URL CLEANUP ---
+    # This block fixes the 'ssl-mode' error by removing it from the URL
+    # and handling it properly in the engine options below.
+    raw_db_url = os.environ.get("DATABASE_URL")
+    if raw_db_url and "?ssl-mode=" in raw_db_url:
+        # We strip the "?ssl-mode=REQUIRED" part from the end of the link
+        db_url = raw_db_url.split("?")[0]
+    else:
+        db_url = raw_db_url
+        
+    app.config["SQLALCHEMY_DATABASE_URI"] = db_url
     
     # CSRF protection
     app.config['WTF_CSRF_SECRET_KEY'] = os.environ.get("CSRF_SECRET")
@@ -37,7 +48,14 @@ def create_app():
 
     # Database settings optimized for cloud hosting
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_recycle": 300, "pool_pre_ping": True}
+    
+    # We move the SSL requirement here into connect_args
+    # This is the standard way to fix the Aiven connection error
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+        "pool_recycle": 300, 
+        "pool_pre_ping": True,
+        "connect_args": {"ssl": {"ca": "/etc/ssl/certs/ca-certificates.crt"}}
+    }
 
     # File upload configuration
     app.config["UPLOAD_FOLDER"] = os.path.join(app.root_path, "static", "uploads")
