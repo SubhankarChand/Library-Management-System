@@ -14,7 +14,7 @@ load_dotenv()
 def create_app():
     app = Flask(__name__)
     
-    # Security middleware
+    # Security middleware for production (helps with HTTPS detection)
     app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
     
     # Configuration from environment variables
@@ -32,14 +32,10 @@ def create_app():
     app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
     app.config['MAIL_DEFAULT_SENDER'] = ('KitabGhar', os.environ.get('MAIL_USERNAME'))
     
-    # ==============================================================================
-    # ========================== START: FLASK-ADMIN THEME ==========================
-    # ==============================================================================
-    
+    # Flask-Admin Theme
     app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
-    # =========================== END: FLASK-ADMIN THEME ===========================
 
-    # Other database settings
+    # Database settings optimized for cloud hosting
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {"pool_recycle": 300, "pool_pre_ping": True}
 
@@ -76,6 +72,7 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
 
+    # Background Scheduler for due date reminders
     from blueprints.main import send_due_date_reminders
     scheduler = BackgroundScheduler(daemon=True)
     scheduler.add_job(
@@ -85,10 +82,20 @@ def create_app():
         minute=0
     )
     scheduler.start()
+    
+    # --- TEMPORARY DATABASE SETUP ROUTE ---
+    # Visit /secret-setup-db once your site is live to create tables
+    @app.route('/secret-setup-db')
+    def setup_db():
+        try:
+            db.create_all()
+            return "Database tables created successfully!", 200
+        except Exception as e:
+            return f"Error creating tables: {str(e)}", 500
 
     return app
 
-# Run the app
+# The app instance for Gunicorn
 app = create_app()
 
 # Import the admin setup after the app is created to avoid circular imports
@@ -96,4 +103,3 @@ import admin as admin_setup
 
 if __name__ == "__main__":
     app.run(debug=True, use_reloader=False)
-
