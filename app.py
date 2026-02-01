@@ -14,18 +14,16 @@ load_dotenv()
 def create_app():
     app = Flask(__name__)
     
-    # Security middleware for production (helps with HTTPS detection)
+    # Security middleware for production (helps with HTTPS detection on Render)
     app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
     
     # Configuration from environment variables
     app.secret_key = os.environ.get("SESSION_SECRET")
     
     # --- DATABASE URL CLEANUP ---
-    # This block fixes the 'ssl-mode' error by removing it from the URL
-    # so we can handle it manually in the engine options.
+    # Strips the 'ssl-mode' parameter from the Aiven URL to prevent driver errors
     raw_db_url = os.environ.get("DATABASE_URL")
     if raw_db_url:
-        # We strip any query parameters (like ?ssl-mode=...) from the link
         db_url = raw_db_url.split("?")[0]
     else:
         db_url = raw_db_url
@@ -49,10 +47,7 @@ def create_app():
     # Database settings optimized for cloud hosting
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     
-    # --- FIX FOR SSL CERTIFICATE ERROR ---
-    # We use an empty dictionary for 'ssl'. This tells the database:
-    # "Use SSL for security, but don't force a strict certificate file check."
-    # This solves the [SSL: CERTIFICATE_VERIFY_FAILED] error on Render.
+    # SSL FIX: Enables secure connection to Aiven without strict cert verification
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
         "pool_recycle": 300, 
         "pool_pre_ping": True,
@@ -69,7 +64,7 @@ def create_app():
     app.config['ALLOWED_IMAGE_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
     app.config['ALLOWED_PDF_EXTENSIONS'] = {'pdf'}
 
-    # Create all upload directories if they don't exist
+    # Ensure upload directories exist
     for p in [
         app.config["UPLOAD_FOLDER"], 
         app.config["BOOK_COVER_FOLDER"], 
@@ -104,23 +99,21 @@ def create_app():
     scheduler.start()
     
     # --- TEMPORARY DATABASE SETUP ROUTE ---
-    # Visit /secret-setup-db once your site is live to create tables
+    # Visit /secret-setup-db once live to create your tables
     @app.route('/secret-setup-db')
     def setup_db():
         try:
             db.create_all()
             return "Database tables created successfully!", 200
         except Exception as e:
-            # We print the error to help you debug if it fails again
-            print(f"Setup Error: {str(e)}")
             return f"Error creating tables: {str(e)}", 500
 
     return app
 
-# The app instance for Gunicorn
+# Main app instance for Gunicorn/Production
 app = create_app()
 
-# Import the admin setup after the app is created to avoid circular imports
+# Admin setup import to avoid circular dependencies
 import admin as admin_setup
 
 if __name__ == "__main__":
