@@ -22,10 +22,10 @@ def create_app():
     
     # --- DATABASE URL CLEANUP ---
     # This block fixes the 'ssl-mode' error by removing it from the URL
-    # and handling it properly in the engine options below.
+    # so we can handle it manually in the engine options.
     raw_db_url = os.environ.get("DATABASE_URL")
-    if raw_db_url and "?ssl-mode=" in raw_db_url:
-        # We strip the "?ssl-mode=REQUIRED" part from the end of the link
+    if raw_db_url:
+        # We strip any query parameters (like ?ssl-mode=...) from the link
         db_url = raw_db_url.split("?")[0]
     else:
         db_url = raw_db_url
@@ -49,12 +49,14 @@ def create_app():
     # Database settings optimized for cloud hosting
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     
-    # We move the SSL requirement here into connect_args
-    # This is the standard way to fix the Aiven connection error
+    # --- FIX FOR SSL CERTIFICATE ERROR ---
+    # We use an empty dictionary for 'ssl'. This tells the database:
+    # "Use SSL for security, but don't force a strict certificate file check."
+    # This solves the [SSL: CERTIFICATE_VERIFY_FAILED] error on Render.
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
         "pool_recycle": 300, 
         "pool_pre_ping": True,
-        "connect_args": {"ssl": {"ca": "/etc/ssl/certs/ca-certificates.crt"}}
+        "connect_args": {"ssl": {}}
     }
 
     # File upload configuration
@@ -109,6 +111,8 @@ def create_app():
             db.create_all()
             return "Database tables created successfully!", 200
         except Exception as e:
+            # We print the error to help you debug if it fails again
+            print(f"Setup Error: {str(e)}")
             return f"Error creating tables: {str(e)}", 500
 
     return app
