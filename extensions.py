@@ -3,9 +3,9 @@ from flask_migrate import Migrate
 from flask_mail import Mail
 from flask_admin import Admin
 
+# Initialize the extensions
 db = SQLAlchemy()
 migrate = Migrate()
 mail = Mail()
-# This creates the main admin interface, using a professional Bootstrap 4 theme
-admin = Admin(name='KitabGhar Control Panel', template_mode='bootstrap4')
 
+admin = Admin(name='KitabGhar Control Panel')

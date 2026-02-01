@@ -4,11 +4,11 @@ from datetime import datetime, timedelta
 from flask import (Blueprint, render_template, request, redirect, url_for, flash, session, jsonify, current_app, send_from_directory)
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-from extensions import db, mail 
-from flask_mail import Message 
+from extensions import db, mail
+from flask_mail import Message
 from .auth import login_required, admin_required, publisher_required, get_current_user
 from models import User, Book, Borrowing, Review
-from threading import Thread 
+from threading import Thread
 from sqlalchemy.exc import IntegrityError
 
 main_bp = Blueprint("main", __name__)
@@ -35,13 +35,14 @@ def send_new_book_notification(app, book, publisher):
         users = User.query.filter_by(role='user').all()
         recipients = [user.email for user in users]
         if not recipients:
-            return 
+            return
+
         msg = Message(
             subject=f"New Book Alert: {book.title}",
             recipients=recipients
         )
         msg.html = render_template(
-            'emails/new_book_notification.html', 
+            'emails/new_book_notification.html',
             book=book,
             publisher=publisher,
             now=now
@@ -113,6 +114,7 @@ def send_return_confirmation_email(app, user, book, borrowing):
     )
     thr = Thread(target=send_async_email, args=[app, msg])
     thr.start()
+
 #==============================================================================
 # CORE & AUTHENTICATION ROUTES
 #==============================================================================
@@ -203,7 +205,7 @@ def login():
                 return redirect(url_for("main.admin_dashboard"))
             elif user.role == "publisher":
                 return redirect(url_for("main.publisher_dashboard"))
-            else: 
+            else:
                 return redirect(url_for("main.index"))
         else:
             flash("Invalid email or password. Please try again.", "danger")
@@ -224,16 +226,13 @@ def logout():
 def profile():
     user = get_current_user()
     if request.method == 'POST':
-        # Check which form was submitted using a hidden input field
         form_type = request.form.get('form_type')
 
         if form_type == 'profile':
-            # Handle profile details update
             new_username = request.form.get('username')
             dob_str = request.form.get('dob')
             school_college = request.form.get('school_college')
             
-            # Check for username change and uniqueness
             if new_username != user.username:
                 if User.query.filter_by(username=new_username).first():
                     flash('That username is already taken. Please choose another.', 'danger')
@@ -251,11 +250,9 @@ def profile():
                 
             user.school_college = school_college
             
-            # Handle profile picture upload
             if 'profile_picture' in request.files:
                 file = request.files['profile_picture']
                 if file.filename != '' and allowed_file(file.filename, current_app.config['ALLOWED_IMAGE_EXTENSIONS']):
-                    # Create a unique filename to prevent overwrites
                     filename = secure_filename(f"{user.id}_{datetime.now().strftime('%Y%m%d%H%M%S')}_{file.filename}")
                     file.save(os.path.join(current_app.config['AVATAR_FOLDER'], filename))
                     user.profile_picture = filename
@@ -264,7 +261,6 @@ def profile():
             flash('Your profile has been updated successfully.', 'success')
 
         elif form_type == 'password':
-            # Handle password change
             current_password = request.form.get('current_password')
             new_password = request.form.get('new_password')
             confirm_password = request.form.get('confirm_password')
@@ -483,8 +479,14 @@ def download_book(book_id):
 @main_bp.route("/borrowing-history")
 @login_required
 def borrowing_history():
+    """
+    Shows the borrowing history ONLY for the currently logged-in user.
+    Admins see their own history here; full history is in the Control Panel.
+    """
     user = get_current_user()
+    # THIS IS THE FIX: Always filter by the current user's ID
     borrowed_books = Borrowing.query.filter_by(user_id=user.id).order_by(Borrowing.borrowed_date.desc()).all()
+    
     return render_template("borrowing_history.html", current_user=user, borrowed_books=borrowed_books, now=datetime.utcnow())
 
 @main_bp.route("/borrow/<int:book_id>")
@@ -504,14 +506,16 @@ def borrow_book(book_id):
     flash(f"You have successfully borrowed '{book.title}'.", "success")
     return redirect(url_for('main.borrowing_history'))
 
-@main_bp.route("/return/<int:borrow_id>")
+@main_bp.route("/return/<int:borrow_id>", methods=['POST']) # Added POST method here
 @login_required
 def return_book(borrow_id):
     borrowing_record = Borrowing.query.get_or_404(borrow_id)
     user = get_current_user()
+    # Admins should be able to return books too, but check ownership if not admin
     if borrowing_record.user_id != user.id and user.role != 'admin':
         flash("Not authorized to perform this action.", "danger")
         return redirect(url_for('main.borrowing_history'))
+    
     if not borrowing_record.is_returned:
         borrowing_record.is_returned = True
         borrowing_record.returned_date = datetime.utcnow()
